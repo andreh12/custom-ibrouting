@@ -6,6 +6,9 @@ class RoutingTable:
     #----------------------------------------    
 
     def __init__(self, linkData, switchLid):
+
+        self.linkData = linkData
+
         self.switchLid = switchLid
 
         self.switchData = linkData.getSwitchDataFromLID(switchLid)
@@ -125,9 +128,22 @@ class RoutingTable:
             # example line:
             # 0x0001 022 : (Switch portguid 0xf4521403001d56c0: 'MF0;sw-ib-c2f14-44-01:SX6036/U1')
 
+            description = "(no description yet)"
+
+            if self.linkData.isHost(lid):
+                hostData = self.linkData.getHostData(lid)
+
+                # example:
+                #  (Channel Adapter portguid 0xf452140300f54f51: 'bu-c2d32-20-01 HCA-1')
+                description = "(Channel Adapter portguid %s: '%s')" % (
+                    hostData['guid'],
+                    hostData['fulldesc']
+                )
+
             print >> fout,"0x%04x %03d : %s" % (lid,
                                                outputPort,
-                                               "(no description yet)")
+                                                description
+                                                )
 
             numValidLids += 1
 
