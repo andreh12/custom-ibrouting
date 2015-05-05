@@ -35,3 +35,33 @@ class Route:
 
 
     #----------------------------------------
+
+    @staticmethod
+    def reverse(linkData, route):
+        # returns the reverse of this route
+
+        # find the LID of the original output leaf switch
+        spineSwitchPort = linkData.getSwitchPortData(route.spineSwitchLid, route.spineSwitchPort)
+
+        outputLeafSwitchLid = spineSwitchPort['peerLid']
+
+        # the port where the cable came into the output leaf switch
+        outputLeafSwitchPort = spineSwitchPort['peerPort']
+
+        # find the input port (of the original route) to the spine switch
+
+        inputLeafSwitchPort = linkData.getSwitchPortData(route.inputLeafSwitchLid, route.inputLeafSwitchPort)
+
+        spineSwitchInputPort = inputLeafSwitchPort['peerPort']
+
+        assert inputLeafSwitchPort['peerLid'] == route.spineSwitchLid
+
+        # the reverse route
+        return Route(
+            outputLeafSwitchLid,
+            outputLeafSwitchPort,
+            route.spineSwitchLid,
+            spineSwitchInputPort)
+
+    #----------------------------------------
+
