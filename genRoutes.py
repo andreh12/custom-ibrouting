@@ -67,6 +67,7 @@ def findSwitchLIDs(linkData):
 
 from FabricTable import FabricTable
 from OccupancyTable import OccupancyTable
+from Route import Route
 
 class RoutingAlgo:
     # performs the routing based on some cost functions
@@ -74,6 +75,8 @@ class RoutingAlgo:
     #----------------------------------------
 
     def __init__(self, linkData, sourceLids, destLids, routeRankingFunc):
+        self.linkData = linkData
+
         self.sourceLids = sourceLids
         self.destLids = destLids
 
@@ -103,6 +106,9 @@ class RoutingAlgo:
 
         self.occupancyTable.addRoute(route)
 
+        # also add the reverse route but don't count it in the occupancy table
+        # (the traffic back from the BUs to the RUs is much smaller)
+        self.fabricTable.addRoute(Route.reverse(self.linkData, route), sourceLid, strict = False)
 
     #----------------------------------------
 
