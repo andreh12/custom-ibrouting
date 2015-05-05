@@ -68,21 +68,38 @@ class RoutingTable:
 
     #----------------------------------------
 
-    def addLocalRoute(self, destLid, outputPort):
+    def addLocalRoute(self, destLid, outputPort, strict = True):
+        # if strict is True, insists that there is output port
+        # defined for this lid (or that it is the same
+        # as already defined).
+        #
+        # @return True iff a new entry was made to the routing table
+        #
+        # If strict is False, does not change the output
+        # port for this LID, does not throw an execption
+        # and returns False
 
         # make sure we do not add conflicting routes
         if self.lidToOutputPort[destLid] == None:
             self.lidToOutputPort[destLid] = outputPort
+
+            return True
         else:
-            # a corresponding entry exists already,
-            # make sure it is the same like what is being set now
-            assert self.lidToOutputPort[destLid] == outputPort, \
-                "trying to assign output port %d for lid %d which already has port %d on switch lid %d" % (
-                    outputPort,
-                    destLid,
-                    self.lidToOutputPort[destLid],
-                    self.switchLid
-                )
+            if strict:
+                # a corresponding entry exists already,
+                # make sure it is the same like what is being set now
+                assert self.lidToOutputPort[destLid] == outputPort, \
+                    "trying to assign output port %d for lid %d which already has port %d on switch lid %d" % (
+                        outputPort,
+                        destLid,
+                        self.lidToOutputPort[destLid],
+                        self.switchLid
+                    )
+
+            # table was not modified
+            return False
+
+
 
     #----------------------------------------
 

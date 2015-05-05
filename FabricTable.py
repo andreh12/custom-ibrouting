@@ -171,16 +171,26 @@ class FabricTable:
 
     #----------------------------------------
 
-    def addRoute(self, route, destLid):
+    def addRoute(self, route, destLid, strict = True):
+        # if strict is True, tries to assign the given route
+        # (will lead to an exception if already existing)
+        #
+        # if strict is False, will stop as soon as
+        # a routing table is encountered which already has
+        # an entry for the destination lid
+
         inputLeafSwitch = self.routingTables[route.inputLeafSwitchLid]
 
         # update routing table on input leaf switch
-        inputLeafSwitch.addLocalRoute(destLid, route.inputLeafSwitchPort)
+        assigned = inputLeafSwitch.addLocalRoute(destLid, route.inputLeafSwitchPort, strict)
+
+        if not assigned:
+            return
 
         # update routing table on spine switch
         spineSwitch = self.routingTables[route.spineSwitchLid]
 
-        spineSwitch.addLocalRoute(destLid, route.spineSwitchPort)
+        spineSwitch.addLocalRoute(destLid, route.spineSwitchPort, strict)
 
         # no need to update the routing table on the output leaf switch:
         # this is a local route there which should have been set
