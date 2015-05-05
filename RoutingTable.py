@@ -105,10 +105,11 @@ class RoutingTable:
         # the parts after 'DR path' seem to differ slightly from switch to switch but not
         # clear whether this is actually read by OpenSM ?
 
-        print >> fout, "Unicast lids [0x%x-0x%x] of switch DR path slid 0; dlid 0; 0,1,19,32 guid %s (MF0;sw-ib-c2f14-14-01:SX6036/U1):" % (
+        print >> fout, "Unicast lids [0x%x-0x%x] of switch DR path slid 0; dlid 0; 0,1,19,32 guid %s (%s):" % (
             self.minLid,
             self.maxLid,
             self.switchData['guid'],
+            self.linkData.getSwitchData(self.switchData['lid'])['fulldesc'],
             )
 
         #----------
@@ -125,9 +126,6 @@ class RoutingTable:
             if outputPort == None:
                 continue
             
-            # example line:
-            # 0x0001 022 : (Switch portguid 0xf4521403001d56c0: 'MF0;sw-ib-c2f14-44-01:SX6036/U1')
-
             description = "(no description yet)"
 
             if self.linkData.isHost(lid):
@@ -139,6 +137,18 @@ class RoutingTable:
                     hostData['guid'],
                     hostData['fulldesc']
                 )
+            elif self.linkData.isSwitch(lid):
+                # example line:
+                # 0x0001 022 : (Switch portguid 0xf4521403001d56c0: 'MF0;sw-ib-c2f14-44-01:SX6036/U1')
+
+                switchData = self.linkData.getSwitchData(lid)
+                description = "(Switch portguid %s: '%s')" % (
+                    switchData['guid'],
+                    switchData['fulldesc']
+                )
+
+
+
 
             print >> fout,"0x%04x %03d : %s" % (lid,
                                                outputPort,
