@@ -176,6 +176,9 @@ class RoutingAlgo:
 
         # loop over all pairs of (source, destination)
 
+        # fill the remaining paths (source, source), (dest, dest)
+        # in particular, (source, source) is needed for the EVM
+
 
     #----------------------------------------
 
