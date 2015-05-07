@@ -36,6 +36,16 @@ class Counter:
 
         return retval
 
+    def clone(self):
+
+        # produce a copy of self.counts (but do not deeply clone
+        # the keys
+
+        retval = Counter()
+        retval.counts = dict(self.counts)
+
+        return retval
+
 
 
 #----------------------------------------------------------------------
@@ -62,6 +72,18 @@ class OccupancyTable:
 
     #----------------------------------------
 
+    def clone(self):
+
+        retval = OccupancyTable()
+
+        retval.spineSwitchLIDtoNumRoutes            = self.spineSwitchLIDtoNumRoutes.clone()
+        retval.inputLeafSwitchLIDandPortToNumRoutes = self.inputLeafSwitchLIDandPortToNumRoutes.clone()
+        retval.spineSwitchLIDandPortToNumRoutes     = self.spineSwitchLIDandPortToNumRoutes.clone()
+
+        return retval
+
+    #----------------------------------------
+
     def addRoute(self, route):
 
         # update spine switch occupancy
@@ -72,7 +94,6 @@ class OccupancyTable:
 
         # update spine to leaf switch cable occupancy
         self.spineSwitchLIDandPortToNumRoutes.inc((route.spineSwitchLid, route.spineSwitchPort))
-
 
     #----------------------------------------
 
