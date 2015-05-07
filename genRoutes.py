@@ -260,6 +260,15 @@ routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, routeRanking01)
 
 routingAlgo.run()
 
+print "--------------------------------------"
+print "summary of priority routes (RU to BU):"
+print "--------------------------------------"
+
+routingAlgo.occupancyTableMainRoutes.printSummary()
+# routingAlgo.occupancyTable.printSummary()
+
+sys.exit(1)
+
 # TEST
 if False:
     routes = fabricTable.makeRoutes(sourceLids[0], destLids[0])
