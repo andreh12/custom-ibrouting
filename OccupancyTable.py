@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 
 # python has a similar class but only from 2.7 on...
 class Counter:
@@ -18,6 +19,24 @@ class Counter:
 
     def getKeys(self):
         return self.counts.keys()
+
+
+    def getOccupancyHistogram(self, reverse = False):
+        # returns a list with entries [ (count, number of items with this count) ]
+        # ordered in increasing order of count
+        retval = []
+
+        cnt = Counter()
+
+        for c in self.counts.values():
+            cnt.inc(c)
+
+        for count in sorted(cnt.counts.keys(), reverse = reverse):
+            retval.append((count, cnt.counts[count]))
+
+        return retval
+
+
 
 #----------------------------------------------------------------------
 
@@ -70,5 +89,30 @@ class OccupancyTable:
 
     def getSpineToLeafCableOccupancy(self, route):
         return self.spineSwitchLIDandPortToNumRoutes.getCountWithDefault((route.spineSwitchLid, route.spineSwitchPort), 0)
+
+    #----------------------------------------
+
+    def printSummary(self, os = sys.stdout):
+        print >> os,"spine switch occupancies:"
+
+        for occupancy, numItems in self.spineSwitchLIDtoNumRoutes.getOccupancyHistogram(reverse = True):
+            print >> os,"  %4d switches have %4d paths" % (numItems, occupancy)
+
+        #----------
+
+        print >> os
+        print >> os,"spine to leaf cable occupancies:"
+
+        for occupancy, numItems in self.spineSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True):
+            print >> os,"  %4d cables have %4d paths" % (numItems, occupancy)
+
+        #----------
+
+        print >> os
+        print >> os,"leaf to spine cable occupancies:"
+
+        for occupancy, numItems in self.inputLeafSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True):
+            print >> os,"  %4d cables have %4d paths" % (numItems, occupancy)
+
 
     #----------------------------------------
