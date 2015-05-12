@@ -147,26 +147,58 @@ class OccupancyTable:
     #----------------------------------------
 
     def printSummary(self, os = sys.stdout):
+        import pylab
+
         print >> os,"spine switch occupancies:"
+
+        xvalues = []; yvalues = []
 
         for occupancy, numItems in self.spineSwitchLIDtoNumRoutes.getOccupancyHistogram(reverse = True):
             print >> os,"  %4d switches have %4d paths" % (numItems, occupancy)
+            xvalues.append(occupancy); yvalues.append(numItems)
+
+        pylab.figure(facecolor = 'white')
+        pylab.bar(xvalues, yvalues, align = 'center')
+        pylab.title('routes per spine switch')
+        pylab.grid()
+        pylab.xlabel("number of routes")
+        pylab.ylabel("number of switches")
 
         #----------
 
         print >> os
         print >> os,"spine to leaf cable occupancies:"
 
+        xvalues = []; yvalues = []
         for occupancy, numItems in self.spineSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True):
             print >> os,"  %4d cables have %4d paths" % (numItems, occupancy)
+
+            xvalues.append(occupancy); yvalues.append(numItems)
+
+        pylab.figure(facecolor = 'white')
+        pylab.bar(xvalues, yvalues, align = 'center')
+        pylab.title('routes per spine to leaf cable')
+        pylab.grid()
+        pylab.xlabel("number of routes")
+        pylab.ylabel("number of cables")
 
         #----------
 
         print >> os
         print >> os,"leaf to spine cable occupancies:"
 
+        xvalues = []; yvalues = []
         for occupancy, numItems in self.inputLeafSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True):
             print >> os,"  %4d cables have %4d paths" % (numItems, occupancy)
 
+            xvalues.append(occupancy); yvalues.append(numItems)
+            
+        pylab.figure(facecolor = 'white')
+        pylab.bar(xvalues, yvalues, align = 'center')
+        pylab.title('routes per leaf to spine cable')
+        pylab.grid()
+        pylab.xlabel("number of routes")
+        pylab.ylabel("number of cables")
 
     #----------------------------------------
+
