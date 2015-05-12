@@ -36,6 +36,8 @@ class RoutingAlgo:
 
         self.occupancyTableMainRoutes = None
 
+        self.graphVizText = None
+
     #----------------------------------------
 
     def __addRoute(self, route, sourceLid, destLid, strict):
@@ -145,6 +147,10 @@ class RoutingAlgo:
         # make a copy of the occupancy table (for later printing)
         self.occupancyTableMainRoutes = self.occupancyTable.clone()
 
+        # also generate the graphviz code now
+        self.graphVizText = self.__makeGraphViz()
+
+
         # now rerun over all possible pairs to build routes
         # (between the hosts, not sure whether we also need
         # routing table entries from switch to switch)
@@ -156,3 +162,118 @@ class RoutingAlgo:
 
     #----------------------------------------
 
+    def __makeGraphViz(self):
+        # :return: graphviz code representing the the link occupancy of the routes
+        #          added so far
+
+        import sys, os
+
+        # this is not thread safe...
+        sys.path.append(os.path.expanduser("~aholz/DAQTools/Diagnostics/trunk/network/"))
+
+        import drawIBclos
+        sys.path.pop(-1)
+
+        import utils
+        # get the LIDs of spine and leaf switches
+        leafSwitches, spineSwitches = utils.findSwitchLIDs(self.linkData)
+
+        # convert to device names
+        leafSwitches  = [ self.linkData.getDeviceName(lid) for lid in leafSwitches ]
+        spineSwitches = [ self.linkData.getDeviceName(lid) for lid in spineSwitches ]
+
+
+        # get the full mapping of peer devices attached to each port of each switch
+
+        for lid in self.linkData.switchLIDs:
+            switchData = self.linkData.getSwitchDataFromLID(lid)
+
+        closDrawer = drawIBclos.ClosDrawer(spineSwitches, leafSwitches,
+                                           self.linkData.getSwitchToPCmapping(),
+                                           self.linkData.getPeerDeviceMap())
+
+        # keep a list of all edges so that we can determine the maximum
+        # occupancy before adding them (to determine the scaling
+        # of occupancy to pen width)
+        edges = []
+
+        # take occupancies from the OccupancyTable object
+        occupancyTable = self.occupancyTableMainRoutes
+
+        #----------
+        # source host to input leaf occupancies
+        #----------
+        for key, occ in occupancyTable.sourceToInputLeafSwitchOccupancy.getItems():
+            # key is sourceLid
+            edges.append(dict(sourceLid = key, port = 1, occupancy = occ))
+
+        #----------
+        # output leaf switch to destination PC occupancy
+        #----------
+
+        for key, occ in occupancyTable.outputLeafSwitchToDestOccupancy.getItems():
+            # key is (outputLeafSwitchLID, outputLeafSwitchPort)
+            edges.append(dict(sourceLid = key[0], port = key[1], occupancy = occ))
+
+        #----------
+        # input leaf switch to spine switch occupancy
+        #----------
+
+        for key, occ in occupancyTable.inputLeafSwitchLIDandPortToNumRoutes.getItems():
+            # key is (inputLeafSwitchLID, port)
+            edges.append(dict(sourceLid = key[0], port = key[1], occupancy = occ))
+
+        #----------
+        # spine switch to output leaf switch occupancy
+        #----------
+
+        for key, occ in occupancyTable.spineSwitchLIDandPortToNumRoutes.getItems():
+            # key is (spineSwitchLID, port)
+            edges.append(dict(sourceLid = key[0], port = key[1], occupancy = occ))
+
+        #----------
+        # determine maximum occupancy
+        #----------
+        maxOcc = max([ edge['occupancy'] for edge in edges ])
+
+        #----------
+        # determine conversion from occupancy to pen width
+        #----------
+        
+        maxPenWidth = 7
+        # pen width for low or no traffic
+        minPenWidth = 0.1
+
+        penWidthScaling = drawIBclos.PenWidthScaling(minPenWidth,
+                                                     maxPenWidth,
+                                                     1, # minimum occupancy
+                                                     maxOcc)
+
+        #----------
+        # make default edges dotted
+        #----------
+        for item in closDrawer.edges.values():
+            for edge in item.values():
+                edge['attrs'] = [ 'style=dotted']
+
+        #----------
+        # add edges to clos drawer
+        #----------
+        for edge in edges:
+            sourceDeviceName = self.linkData.getDeviceName(edge['sourceLid'])
+
+            # determine graphviz attributes
+            attrs = penWidthScaling.makeEdgeAttributes(edge['occupancy'])
+            closDrawer.edges[sourceDeviceName][edge['port']]['attrs'] = attrs
+
+        # the output buffer to write to
+        import StringIO
+        os = StringIO.StringIO()
+
+        # generate the graphviz code
+        closDrawer.doPrint(os)
+
+        return os.getvalue()
+        
+
+    #----------------------------------------
