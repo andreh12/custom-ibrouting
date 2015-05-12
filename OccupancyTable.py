@@ -59,7 +59,9 @@ class OccupancyTable:
 
     #----------------------------------------
 
-    def __init__(self):
+    def __init__(self, linkData):
+
+        self.linkData = linkData
 
         # for keeping statistics about how many routes
         # go through the spine switches
@@ -72,21 +74,34 @@ class OccupancyTable:
         # key is (spineSwitchLID, port)
         self.spineSwitchLIDandPortToNumRoutes = Counter()
 
+        #----------
+
+        # counts input PCs to input leaf switch link occupancies
+        # key is sourceLid
+        self.sourceToInputLeafSwitchOccupancy = Counter()
+
+        # counts output leaf switch to destination PCs occupancies
+        # key is (outputLeafSwitchLID, outputLeafSwitchPort)
+        self.outputLeafSwitchToDestOccupancy = Counter()
+
     #----------------------------------------
 
     def clone(self):
 
-        retval = OccupancyTable()
+        retval = OccupancyTable(self.linkData)
 
         retval.spineSwitchLIDtoNumRoutes            = self.spineSwitchLIDtoNumRoutes.clone()
         retval.inputLeafSwitchLIDandPortToNumRoutes = self.inputLeafSwitchLIDandPortToNumRoutes.clone()
         retval.spineSwitchLIDandPortToNumRoutes     = self.spineSwitchLIDandPortToNumRoutes.clone()
 
+        retval.sourceToInputLeafSwitchOccupancy     = self.sourceToInputLeafSwitchOccupancy.clone()
+        retval.outputLeafSwitchToDestOccupancy      = self.outputLeafSwitchToDestOccupancy.clone()
+
         return retval
 
     #----------------------------------------
 
-    def addRoute(self, route):
+    def addRoute(self, sourceLid, destLid, route):
 
         # update spine switch occupancy
         self.spineSwitchLIDtoNumRoutes.inc(route.spineSwitchLid)
@@ -96,6 +111,22 @@ class OccupancyTable:
 
         # update spine to leaf switch cable occupancy
         self.spineSwitchLIDandPortToNumRoutes.inc((route.spineSwitchLid, route.spineSwitchPort))
+
+        #-----
+        
+        # update source to input leaf switch occupancy
+        self.sourceToInputLeafSwitchOccupancy.inc(sourceLid)
+
+        # update source to input leaf switch occupancy
+        # first find the output leaf switch
+
+        outputLeafSwitchLID = self.linkData.getSwitchPortData(route.spineSwitchLid, route.spineSwitchPort)['peerLid']
+        
+        # find the output port on the output leaf switch to go to the destination LID
+        outputPortData = self.linkData.findSwitchPortByPeerLid(outputLeafSwitchLID, destLid)
+        assert outputPortData != None
+
+        self.outputLeafSwitchToDestOccupancy.inc((outputLeafSwitchLID, outputPortData['port']))
 
     #----------------------------------------
 
