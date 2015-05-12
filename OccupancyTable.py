@@ -20,6 +20,8 @@ class Counter:
     def getKeys(self):
         return self.counts.keys()
 
+    def getItems(self):
+        return self.counts.items()
 
     def getOccupancyHistogram(self, reverse = False):
         # returns a list with entries [ (count, number of items with this count) ]
