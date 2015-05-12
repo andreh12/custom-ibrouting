@@ -79,7 +79,7 @@ class RoutingAlgo:
 
             # pick the route based on some occupancy measure,
             # i.e. pick the 'smallest' element
-            routesCost = [ self.routeRankingFunc(self.occupancyTable, route) for route in routes ]
+            routesCost = [ self.routeRankingFunc(self.occupancyTable, route, sourceLid, destLid) for route in routes ]
 
             bestRouteCost, bestRoute = min(zip(routesCost, routes))
 
