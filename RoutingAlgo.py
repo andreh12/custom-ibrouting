@@ -28,7 +28,7 @@ class RoutingAlgo:
         self.fabricTable = FabricTable(linkData, self.leafSwitchLIDs, self.spineSwitchLIDs)
 
         # occupancy table
-        self.occupancyTable = OccupancyTable()
+        self.occupancyTable = OccupancyTable(self.linkData)
 
         # the function defining the best route in each step
         # (this may also return a tuple to break ties)
@@ -45,7 +45,7 @@ class RoutingAlgo:
         # update the routing and occupancy table
         self.fabricTable.addRoute(route, destLid, strict)
 
-        self.occupancyTable.addRoute(route)
+        self.occupancyTable.addRoute(sourceLid, destLid, route)
 
         # also add the reverse route but don't count it in the occupancy table
         # (the traffic back from the BUs to the RUs is much smaller)
