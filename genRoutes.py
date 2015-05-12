@@ -97,5 +97,7 @@ if False:
 
 
 
-routingAlgo.fabricTable.doPrint(sys.stdout)
+fout = open("/tmp/routing-table-%dx%d.txt" % (len(sourceHosts), len(destHosts)), "w")
+routingAlgo.fabricTable.doPrint(fout)
+fout.close()
 #----------------------------------------
