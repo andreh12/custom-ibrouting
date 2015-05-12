@@ -27,7 +27,7 @@ from RoutingAlgo import RoutingAlgo
 #----------------------------------------------------------------------
 
 
-def routeRanking01(occupancyTable, route):
+def routeRanking01(occupancyTable, route, sourceLid, destLid):
 
     # @return a tuple of (spineSwitchOccupancy, spineToLeafCableOccupancy, leafToSpineCableOccupancy)
     # this means that
