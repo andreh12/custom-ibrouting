@@ -36,3 +36,25 @@ def findSwitchLIDs(linkData):
 
 #----------------------------------------------------------------------
 
+def readHostsFile(fname):
+    fin = open(fname)
+
+    retval = []
+
+    for line in fin.read().splitlines():
+
+        # remove comments
+        pos = line.find('#')
+        if pos != -1:
+            line = line[:pos]
+        
+        line = line.strip()
+
+        if line:
+            retval.append(line)
+
+    fin.close()
+
+    return retval
+
+#----------------------------------------------------------------------
