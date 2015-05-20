@@ -146,8 +146,9 @@ class OccupancyTable:
 
     #----------------------------------------
 
-    def printSummary(self, os = sys.stdout):
-        import pylab
+    def printSummary(self, os = sys.stdout, showPlots = True):
+        if showPlots:
+            import pylab
 
         print >> os,"spine switch occupancies:"
 
@@ -157,12 +158,13 @@ class OccupancyTable:
             print >> os,"  %4d switches have %4d paths" % (numItems, occupancy)
             xvalues.append(occupancy); yvalues.append(numItems)
 
-        pylab.figure(facecolor = 'white')
-        pylab.bar(xvalues, yvalues, align = 'center')
-        pylab.title('routes per spine switch')
-        pylab.grid()
-        pylab.xlabel("number of routes")
-        pylab.ylabel("number of switches")
+        if showPlots:
+            pylab.figure(facecolor = 'white')
+            pylab.bar(xvalues, yvalues, align = 'center')
+            pylab.title('routes per spine switch')
+            pylab.grid()
+            pylab.xlabel("number of routes")
+            pylab.ylabel("number of switches")
 
         #----------
 
@@ -175,12 +177,13 @@ class OccupancyTable:
 
             xvalues.append(occupancy); yvalues.append(numItems)
 
-        pylab.figure(facecolor = 'white')
-        pylab.bar(xvalues, yvalues, align = 'center')
-        pylab.title('routes per spine to leaf cable')
-        pylab.grid()
-        pylab.xlabel("number of routes")
-        pylab.ylabel("number of cables")
+        if showPlots:
+            pylab.figure(facecolor = 'white')
+            pylab.bar(xvalues, yvalues, align = 'center')
+            pylab.title('routes per spine to leaf cable')
+            pylab.grid()
+            pylab.xlabel("number of routes")
+            pylab.ylabel("number of cables")
 
         #----------
 
@@ -193,12 +196,13 @@ class OccupancyTable:
 
             xvalues.append(occupancy); yvalues.append(numItems)
             
-        pylab.figure(facecolor = 'white')
-        pylab.bar(xvalues, yvalues, align = 'center')
-        pylab.title('routes per leaf to spine cable')
-        pylab.grid()
-        pylab.xlabel("number of routes")
-        pylab.ylabel("number of cables")
+        if showPlots:
+            pylab.figure(facecolor = 'white')
+            pylab.bar(xvalues, yvalues, align = 'center')
+            pylab.title('routes per leaf to spine cable')
+            pylab.grid()
+            pylab.xlabel("number of routes")
+            pylab.ylabel("number of cables")
 
     #----------------------------------------
 

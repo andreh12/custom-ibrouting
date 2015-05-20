@@ -2,7 +2,14 @@
 
 # tool to parse generate our custom Infiniband routing table
 
-import sys, os, commands, pylab
+import sys, os, commands
+
+try:
+    import pylab
+    havePylab = True
+except ImportError:
+    havePylab = False
+
 from pprint import pprint
 
 sys.path.append(os.path.expanduser("~aholz/DAQTools/Diagnostics/trunk/network/"))
@@ -125,7 +132,7 @@ print "--------------------------------------"
 print "summary of priority routes (RU to BU):"
 print "--------------------------------------"
 
-routingAlgo.occupancyTableMainRoutes.printSummary()
+routingAlgo.occupancyTableMainRoutes.printSummary(showPlots = havePylab)
 # routingAlgo.occupancyTable.printSummary()
 
 # print a Graphviz file with the route occupancies
@@ -133,7 +140,8 @@ fout = open("/tmp/t.gv","w")
 fout.write(routingAlgo.graphVizText)
 fout.close()
 
-pylab.show()
+if havePylab:
+    pylab.show()
 
 # sys.exit(1)
 
