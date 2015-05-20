@@ -59,6 +59,9 @@ def routeRanking01(occupancyTable, route, sourceLid, destLid):
 
 #----------------------------------------
 class RouteRanking02:
+    # does a fat tree like routing by assigning
+    # traffic for a given BU on the same leaf switch
+
     def __init__(self, spineSwitchLIDs):
         # maps from destination LID to LID of spine switch
         self.buToSpineSwitch = {}
