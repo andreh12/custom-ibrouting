@@ -45,56 +45,6 @@ from RoutingAlgo import RoutingAlgo
 #----------------------------------------------------------------------
 
 
-def routeRanking01(occupancyTable, route, sourceLid, destLid):
-
-    # @return a tuple of (spineSwitchOccupancy, spineToLeafCableOccupancy, leafToSpineCableOccupancy)
-    # this means that
-    #   - the highest priority will be to balance the spine switch occupancy,
-    #   - then the leaf to spine cable occupancy
-    #   - and then the spine to leaf cable occupancy
-
-    return (occupancyTable.getSpineSwitchOccupancy(route),
-            occupancyTable.getLeafToSpineCableOccupancy(route),
-            occupancyTable.getSpineToLeafCableOccupancy(route))
-
-#----------------------------------------
-class RouteRanking02:
-    # does a fat tree like routing by assigning
-    # traffic for a given BU on the same leaf switch
-
-    def __init__(self, spineSwitchLIDs):
-        # maps from destination LID to LID of spine switch
-        self.buToSpineSwitch = {}
-        self.spineSwitchLIDs = spineSwitchLIDs
-
-    def __call__(self, occupancyTable, route, sourceLid, destLid):
-        spineSwitchLid = route.spineSwitchLid
-
-        if not self.buToSpineSwitch.has_key(destLid):
-            # assign a new spine switch to this destination:
-            # take the spine switch which currently has the fewest routes
-            # going over it
-
-            occupancy, switchLid = min([ (occupancyTable.spineSwitchLIDtoNumRoutes.getCountWithDefault(lid, 0), lid) for lid in self.spineSwitchLIDs ])
-
-            self.buToSpineSwitch[destLid] = switchLid
-
-        switchLid = self.buToSpineSwitch[destLid]
-
-        if switchLid == route.spineSwitchLid:
-            # this is the preferred route
-            spineSwitchRanking = 0
-        else:
-            spineSwitchRanking = 1
-
-        return (
-            spineSwitchRanking,
-
-            # secondary ranking
-            occupancyTable.getSpineToLeafCableOccupancy(route),
-
-            occupancyTable.getLeafToSpineCableOccupancy(route),
-            )
 
 #----------------------------------------------------------------------
 # main
@@ -138,6 +88,12 @@ parser.add_option("--report",
                   help="name of output html file for route statistics report",
                   metavar="report.html")
 
+parser.add_option("--algo",
+                  default = None,
+                  type="str",
+                  help="name of a python file containing the functions needed by the routing algorithm",
+                  metavar="algo.py")
+
 (options, ARGV) = parser.parse_args()
 
 
@@ -175,6 +131,17 @@ if not destHosts:
     sys.exit(1)
 
 #----------
+# load the routing algorithm functions
+#----------
+
+if options.algo == None:
+    print >> sys.stderr,"must specify a routing algorithm functions file"
+    sys.exit(1)
+
+import imp
+RoutingAlgoRankingFunctions = imp.load_source("RoutingAlgoRankingFunctions",
+                                              options.algo)
+#----------
 # html report file
 #----------
 if options.report != None:
@@ -203,13 +170,11 @@ sourceLids = [ linkData.getLidFromHostname(host) for host in sourceHosts ]
 destLids   = [ linkData.getLidFromHostname(host) for host in destHosts   ]
 
 
-if True:
-    routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, routeRanking01)
+# if True:
+#     routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, routeRanking01)
 
-if False:
-    routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, None)
-
-    routingAlgo.routeRankingFunc = RouteRanking02(routingAlgo.spineSwitchLIDs)
+routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, None)
+routingAlgo.routeRankingFunc = RoutingAlgoRankingFunctions.makeRouteRankingFunction(routingAlgo)
 
 routingAlgo.run()
 
