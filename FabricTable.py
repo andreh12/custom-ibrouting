@@ -89,7 +89,8 @@ class FabricTable:
             # a non-local route was only partially set up ?
             return None
 
-        return Route(inputLeafSwitch.switchLid,
+        return Route(self.linkData,
+                     inputLeafSwitch.switchLid,
                      inputLeafSwitchPort,
                      spineSwitchLid,
                      spineSwitchPort)
@@ -161,10 +162,11 @@ class FabricTable:
                     continue
 
                 retval.append(
-                  Route(inputLeafSwitch.switchLid,
-                         inputLeafSwitchPort,
-                         spineSwitchLid,
-                         spineSwitchPort)
+                  Route(self.linkData,
+                        inputLeafSwitch.switchLid,
+                        inputLeafSwitchPort,
+                        spineSwitchLid,
+                        spineSwitchPort)
                 )
 
         return retval
