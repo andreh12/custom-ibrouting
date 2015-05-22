@@ -83,6 +83,13 @@ class RoutingAlgo:
 
             bestRouteCost, bestRoute = min(zip(routesCost, routes))
 
+            # DEBUG: find number of routes with the same minimal cost
+            if True:
+                numBestRoutes = len([ x for x in routesCost if x == bestRouteCost ])
+                if numBestRoutes > 1:
+                    print "found %d best routes with the same cost" % numBestRoutes
+
+
             # add this route to the routing table
             self.__addRoute(bestRoute, sourceLid, destLid, strict)
 
