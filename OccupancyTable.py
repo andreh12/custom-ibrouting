@@ -279,7 +279,7 @@ class OccupancyTable:
 
             if not interactive:
                 pylab.savefig(fout.name)
-                fig.close()
+                pylab.close(fig)
 
             # make sure the return the file object,
             # so that it does not get deleted too early
