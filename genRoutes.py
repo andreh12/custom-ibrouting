@@ -2,7 +2,7 @@
 
 # tool to parse generate our custom Infiniband routing table
 
-import sys, os, commands
+import sys, os, commands, time
 
 try:
     import pylab
@@ -132,6 +132,12 @@ parser.add_option("--gvout",
                   help="name of graphviz output file",
                   metavar="out.gv")
 
+parser.add_option("--report",
+                  default = None,
+                  type="str",
+                  help="name of output html file for route statistics report",
+                  metavar="report.html")
+
 (options, ARGV) = parser.parse_args()
 
 
@@ -168,6 +174,27 @@ if not destHosts:
     print >> sys.stderr,"list of destination hosts is empty"
     sys.exit(1)
 
+#----------
+# html report file
+#----------
+if options.report != None:
+    htmlReportFile = open(options.report,"w")
+
+    title = "routing table report %d x %d, %s" % (len(sourceHosts), len(destHosts), time.asctime())
+
+    print >> htmlReportFile,"<html>"
+    print >> htmlReportFile,"<head>"
+    print >> htmlReportFile,"<title>%s</title>" % title
+    print >> htmlReportFile,"</head>"
+    print >> htmlReportFile,"<body>"
+
+    print >> htmlReportFile,"<h1>%s</h1><br/><br/>" % title
+
+    print >> htmlReportFile,"%d sources:<br/>" % len(sourceHosts),", ".join(sourceHosts) + "<br/><br/>"
+    print >> htmlReportFile,"%d destinations:<br/>" % len(destHosts),", ".join(destHosts) + "<br/><br/>"
+    
+else:
+    htmlReportFile = None
 
 #----------------------------------------
 
@@ -186,26 +213,54 @@ if False:
 
 routingAlgo.run()
 
-print "--------------------------------------"
-print "summary of priority routes (RU to BU):"
-print "--------------------------------------"
-
-routingAlgo.occupancyTableMainRoutes.printSummary(showPlots = havePylab)
-# routingAlgo.occupancyTable.printSummary()
-
+#----------
 # print a Graphviz file with the route occupancies
+#----------
 if options.gvout != None:
     fout = open(options.gvout,"w")
     fout.write(routingAlgo.graphVizText)
     fout.close()
 
-if havePylab:
-    pylab.show()
 
-# sys.exit(1)
+summaryData = routingAlgo.occupancyTableMainRoutes.makeSummaryData()
+
+if htmlReportFile != None:
+    routingAlgo.occupancyTableMainRoutes.printSummaryHTML(summaryData, htmlReportFile)
+
+    if havePylab:
+        # add the graphs
+        images = routingAlgo.occupancyTableMainRoutes.makeOccupancyPlots(summaryData, False)
+
+        # convert them to datauri objects
+        for image in images:
+            print >> htmlReportFile, "<hr/>"
+
+            fin = open(image.name)
+            data = fin.read()
+            fin.close()
+
+            data = data.encode("base64").replace("\n", "")
+
+            print >> htmlReportFile,'<img src="data:image/png;base64,%s" /><br/>' % data
+            
+
+else:
+    # print the summary on stdout
+    print "--------------------------------------"
+    print "summary of priority routes (RU to BU):"
+    print "--------------------------------------"
+    
+    routingAlgo.occupancyTableMainRoutes.printSummary(summaryData)
+
+    # show the plots
+    if havePylab:
+        routingAlgo.occupancyTableMainRoutes.makeOccupancyPlots(summaryData, True)
+        pylab.show()
 
 
-
+if htmlReportFile != None:
+    print >> htmlReportFile,"</body>"
+    htmlReportFile.close()
 
 # TEST
 if False:
