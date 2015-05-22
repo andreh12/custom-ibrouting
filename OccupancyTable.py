@@ -210,6 +210,45 @@ class OccupancyTable:
 
     #----------------------------------------
 
+    def printSummaryHTML(self, data, os):
+
+        # produces a HTML table with the summary
+        # (does not produce a full html document, i.e.
+        # no headers and footers etc.)
+
+        for index, line in enumerate(data):
+
+            if index > 0:
+                print >> os, "<hr/>"
+
+            print >> os,"<div>"
+            # print the title
+            print >> os, line['title'] + ":" + "<br/>"
+
+            import string
+            templ = string.Template(line['itemTemplate'])
+
+            print >> os,'<table border="1">'
+
+            # table header
+            print >> os,"<tr>"
+            print >> os,"<th>num cables/switches</th>"
+            print >> os,"<th>occupancy per cable/switch</th>"
+            
+            print >> os,"</tr>"
+
+            for occupancy, numItems in line['counts']:
+                print >> os,"<tr>"
+                print >> os,"<td>%d</td>" % numItems
+                print >> os,"<td>%d</td>" % occupancy
+                print >> os,"</tr>"
+
+            print >> os,"</table>"
+            print >> os,"</div>"
+
+
+    #----------------------------------------
+
     def makeOccupancyPlots(self, data, interactive):
         # produces files, does not show them on screen
         # @return the names of the temporary files generated
