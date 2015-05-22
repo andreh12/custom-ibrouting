@@ -146,63 +146,109 @@ class OccupancyTable:
 
     #----------------------------------------
 
-    def printSummary(self, os = sys.stdout, showPlots = True):
-        if showPlots:
-            import pylab
+    def makeSummaryData(self):
+        retval = []
 
-        print >> os,"spine switch occupancies:"
 
-        xvalues = []; yvalues = []
+        retval.append(dict(title = "spine switch occupancies",
+                           counts = self.spineSwitchLIDtoNumRoutes.getOccupancyHistogram(reverse = True),
+                           itemTemplate = "${numItems} switches have ${occupancy} paths",
 
-        for occupancy, numItems in self.spineSwitchLIDtoNumRoutes.getOccupancyHistogram(reverse = True):
-            print >> os,"  %4d switches have %4d paths" % (numItems, occupancy)
-            xvalues.append(occupancy); yvalues.append(numItems)
+                           # plotting parameters
+                           xlabel = "number of routes",
+                           ylabel = "number of switches",
+                           plotTitle = 'routes per spine switch'
+                           ))
 
-        if showPlots:
-            pylab.figure(facecolor = 'white')
-            pylab.bar(xvalues, yvalues, align = 'center')
-            pylab.title('routes per spine switch')
-            pylab.grid()
-            pylab.xlabel("number of routes")
-            pylab.ylabel("number of switches")
+        retval.append(dict(title = "spine to leaf cable occupancies",
+                           counts = self.spineSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True),
+                           itemTemplate = "${numItems} cables have ${occupancy} paths",
 
-        #----------
+                           # plotting parameters
+                           xlabel = "number of routes",
+                           ylabel = "number of cables",
+                           plotTitle = 'routes per spine to leaf cable',
 
-        print >> os
-        print >> os,"spine to leaf cable occupancies:"
+                           ))
 
-        xvalues = []; yvalues = []
-        for occupancy, numItems in self.spineSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True):
-            print >> os,"  %4d cables have %4d paths" % (numItems, occupancy)
+        retval.append(dict(title = "leaf to spine cable occupancies",
+                           counts = self.inputLeafSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True),
+                           itemTemplate = "${numItems} cables have ${occupancy} paths",
 
-            xvalues.append(occupancy); yvalues.append(numItems)
+                           # plotting parameters
+                           xlabel = "number of routes",
+                           ylabel = "number of cables",
+                           plotTitle = 'routes per leaf to spine cable',
 
-        if showPlots:
-            pylab.figure(facecolor = 'white')
-            pylab.bar(xvalues, yvalues, align = 'center')
-            pylab.title('routes per spine to leaf cable')
-            pylab.grid()
-            pylab.xlabel("number of routes")
-            pylab.ylabel("number of cables")
+                           ))
 
-        #----------
+        
+        return retval
 
-        print >> os
-        print >> os,"leaf to spine cable occupancies:"
 
-        xvalues = []; yvalues = []
-        for occupancy, numItems in self.inputLeafSwitchLIDandPortToNumRoutes.getOccupancyHistogram(reverse = True):
-            print >> os,"  %4d cables have %4d paths" % (numItems, occupancy)
+    #----------------------------------------        
 
-            xvalues.append(occupancy); yvalues.append(numItems)
-            
-        if showPlots:
-            pylab.figure(facecolor = 'white')
-            pylab.bar(xvalues, yvalues, align = 'center')
-            pylab.title('routes per leaf to spine cable')
-            pylab.grid()
-            pylab.xlabel("number of routes")
-            pylab.ylabel("number of cables")
+    def printSummary(self, data, os = sys.stdout):
+
+        for index, line in enumerate(data):
+
+            if index > 0:
+                print >> os
+
+            # print the title
+            print >> os, line['title'] + ":"
+
+            import string
+            templ = string.Template(line['itemTemplate'])
+
+            for occupancy, numItems in line['counts']:
+                print >> os, "  " + templ.substitute(dict(numItems  = "%4d" % numItems,
+                                                          occupancy = "%4d" % occupancy))
+
+            #----------
+
 
     #----------------------------------------
 
+    def makeOccupancyPlots(self, data, interactive):
+        # produces files, does not show them on screen
+        # @return the names of the temporary files generated
+
+        retval = []
+
+        import pylab
+
+        for line in data:
+
+            # collect the values 
+            xvalues = []; yvalues = []
+
+            for occupancy, numItems in line['counts']:
+                xvalues.append(occupancy); yvalues.append(numItems)
+        
+            fig = pylab.figure(facecolor = 'white')
+            pylab.bar(xvalues, yvalues, align = 'center')
+            pylab.title(line['plotTitle'])
+            pylab.grid()
+            pylab.xlabel(line['xlabel'])
+            pylab.ylabel(line['ylabel'])
+
+            # save the figure
+            import tempfile
+            fout = tempfile.NamedTemporaryFile(suffix = ".png")
+
+
+            if not interactive:
+                pylab.savefig(fout.name)
+                fig.close()
+
+            # make sure the return the file object,
+            # so that it does not get deleted too early
+            # in python 2.4
+            retval.append(fout)
+
+        if not interactive:
+            return retval
+        
+
+    #----------------------------------------
