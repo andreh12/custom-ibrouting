@@ -126,6 +126,12 @@ parser.add_option("--iblinkfile",
                   help="name of a file with the output of iblinkinfo",
                   metavar="src.txt")
 
+parser.add_option("--gvout",
+                  default = None,
+                  type="str",
+                  help="name of graphviz output file",
+                  metavar="out.gv")
+
 (options, ARGV) = parser.parse_args()
 
 
@@ -188,9 +194,10 @@ routingAlgo.occupancyTableMainRoutes.printSummary(showPlots = havePylab)
 # routingAlgo.occupancyTable.printSummary()
 
 # print a Graphviz file with the route occupancies
-fout = open("/tmp/t.gv","w")
-fout.write(routingAlgo.graphVizText)
-fout.close()
+if options.gvout != None:
+    fout = open(options.gvout,"w")
+    fout.write(routingAlgo.graphVizText)
+    fout.close()
 
 if havePylab:
     pylab.show()
