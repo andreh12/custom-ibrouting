@@ -68,6 +68,7 @@ class RoutingAlgo:
                 # no route needed for loopback...
                 continue
 
+            # get a list of possible routes
             routes = self.fabricTable.makeRoutes(sourceLid, destLid)
 
             # if these are on the same switch, routes is None
