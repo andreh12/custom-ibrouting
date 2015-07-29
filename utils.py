@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import re
+
 #----------------------------------------------------------------------
 
 def findSwitchLIDs(linkData):
@@ -50,8 +52,17 @@ def readHostsFile(fname):
         
         line = line.strip()
 
-        if line:
-            retval.append(line)
+        if not line:
+            # skip empty lines
+            # also avoid having a list with a single empty string
+            # in the split below
+            continue
+
+        # allow for multiple hosts on the same line (to e.g. allow the format
+        # produced by ~/oncall-stuff/print{RU,BU}sInRun.py)
+        hosts = re.split('\s+', line)
+
+        retval.extend(hosts)
 
     fin.close()
 
