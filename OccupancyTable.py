@@ -63,9 +63,15 @@ class OccupancyTable:
 
         self.linkData = linkData
 
+        #----------
         # for keeping statistics about how many routes
-        # go through the spine switches
-        self.spineSwitchLIDtoNumRoutes = Counter()
+        # go through the switches
+        # (we currently distinguish between input
+        # and output leaf switches)
+        #----------
+        self.spineSwitchLIDtoNumRoutes      = Counter()
+        self.inputLeafSwitchLIDtoNumRoutes  = Counter()
+        self.outputLeafSwitchLIDtoNumRoutes = Counter()
 
         # key is (inputLeafSwitchLID, port)
         # value is number of routes
@@ -90,7 +96,11 @@ class OccupancyTable:
 
         retval = OccupancyTable(self.linkData)
 
+        # switch occupancies
         retval.spineSwitchLIDtoNumRoutes            = self.spineSwitchLIDtoNumRoutes.clone()
+        retval.inputLeafSwitchLIDtoNumRoutes        = self.inputLeafSwitchLIDtoNumRoutes.clone()
+        retval.outputLeafSwitchLIDtoNumRoutes       = self.outputLeafSwitchLIDtoNumRoutes.clone()
+
         retval.inputLeafSwitchLIDandPortToNumRoutes = self.inputLeafSwitchLIDandPortToNumRoutes.clone()
         retval.spineSwitchLIDandPortToNumRoutes     = self.spineSwitchLIDandPortToNumRoutes.clone()
 
@@ -103,8 +113,12 @@ class OccupancyTable:
 
     def addRoute(self, sourceLid, destLid, route):
 
-        # update spine switch occupancy
+        #----------
+        # update spine and leaf switches occupancy
+        #----------
         self.spineSwitchLIDtoNumRoutes.inc(route.spineSwitchLid)
+        self.inputLeafSwitchLIDtoNumRoutes.inc(route.inputLeafSwitchLid)
+        self.outputLeafSwitchLIDtoNumRoutes.inc(route.outputLeafSwitchLid)
 
         # update leaf to spine switch cable occupancy
         self.inputLeafSwitchLIDandPortToNumRoutes.inc((route.inputLeafSwitchLid, route.inputLeafSwitchPort))
@@ -132,6 +146,16 @@ class OccupancyTable:
 
     def getSpineSwitchOccupancy(self, route):
         return self.spineSwitchLIDtoNumRoutes.getCountWithDefault(route.spineSwitchLid, 0)
+
+    #----------------------------------------
+    
+    def getInputLeafSwitchOccupancy(self, route):
+        return self.inputLeafSwitchLIDtoNumRoutes.getCountWithDefault(route.inputLeafSwitchLid)
+
+    #----------------------------------------
+
+    def getOutputLeafSwitchOccupancy(self, route):
+        return self.outputLeafSwitchLIDtoNumRoutes.getCountWithDefault(route.inputLeafSwitchLid)
 
     #----------------------------------------
 
