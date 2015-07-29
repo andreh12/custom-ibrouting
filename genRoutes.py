@@ -169,6 +169,16 @@ else:
 sourceLids = [ linkData.getLidFromHostname(host) for host in sourceHosts ]
 destLids   = [ linkData.getLidFromHostname(host) for host in destHosts   ]
 
+# make sure we have found the lids for all hosts
+# (e.g. when the input file is in the wrong format, we will not find the LID here)
+for lids, hosts in (
+    (sourceLids, sourceHosts),
+    (destLids, destHosts)):
+    for lid, host in zip(lids, hosts):
+        if lid == None:
+            print >> sys.stderr,"could not find lid for host '%s'" % host
+            sys.exit(1)
+
 
 # if True:
 #     routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, routeRanking01)
