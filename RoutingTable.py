@@ -69,9 +69,9 @@ class RoutingTable:
     #----------------------------------------
 
     def addLocalRoute(self, destLid, outputPort, strict = True):
-        # if strict is True, insists that there is output port
-        # defined for this lid (or that it is the same
-        # as already defined).
+        # if strict is True, insists that there is no output port
+        # defined yet for this lid or that it is the same
+        # as already defined.
         #
         # @return True iff a new entry was made to the routing table
         #
