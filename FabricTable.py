@@ -43,6 +43,16 @@ class FabricTable:
         # not found
         return None
 
+    #----------------------------------------                                                                                                                                                                         
+                                                                                                                                                                                                                      
+    def isHostLocalOnTheSwitch(self, switchLid, hostLid):                                                                                                                                                             
+        # returns True is if the hostLid it local to switchLid (is directly attached to that switch)                                                                                                                  
+                                                                                                                                                                                                                      
+        routingTable = self.routingTables[switchLid]                                                                                                                                                                  
+        assert routingTable != None                                                                                                                                                                                   
+                                                                                                                                                                                                                      
+        return routingTable.isConnectedToLid(hostLid);                                                                                                                                                                
+                                                       
     #----------------------------------------
 
     def findExistingRoute(self, sourceLid, destLid):
@@ -96,7 +106,28 @@ class FabricTable:
                      spineSwitchLid,
                      spineSwitchPort)
 
-    #----------------------------------------
+    #----------------------------------------                                                                                                                                                                         
+                                                                                                                                                                                                                      
+    def findLocalPortsForDestination(self, switchLid, destLid):                                                                                                                                                       
+        # returns list of all output ports on the given switch physically connected to the given destination                                                                                                          
+                                                                                                                                                                                                                      
+        routingTable = self.routingTables[switchLid]                                                                                                                                                                  
+        assert routingTable != None                                                                                                                                                                                   
+                                                                                                                                                                                                                      
+        return routingTable.findLocalPorts(destLid);                                                                                                                                                                  
+                                                                                                                                                                                                                      
+    #----------------------------------------                                                                                                                                                                         
+                                                                                                                                                                                                                      
+    def getSwitchRouteOutputPortForDestination(self, switchLid, destLid):                                                                                                                                             
+        # checks if there already is a route from a switch to destLid and returns output port                                                                                                                         
+        # returns none if route is not define                                                                                                                                                                         
+                                                                                                                                                                                                                      
+        routingTable = self.routingTables[switchLid]                                                                                                                                                                  
+        assert routingTable != None                                                                                                                                                                                   
+                                                                                                                                                                                                                      
+        return routingTable.getOutputPortForDestination(destLid)                                                                                                                                                      
+                                                                                                                                                                                                                      
+    #---------------------------------------- 
 
     def makeRoutes(self, sourceLid, destLid):
         # returns a list of possible routes between the two LIDs

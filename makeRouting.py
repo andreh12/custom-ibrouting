@@ -41,7 +41,7 @@ cmdParts = [
     "--destfile bus.txt",
     "--iblinkfile iblinkinfo-output",
     "--algo " + os.path.join(scriptDir, "ranking03.py"),
-    "-o routing-table-%dx%d-algo03.txt" % (numRus, numBus),
+    "-o routing-table-%dx%d-petr.txt" % (numRus, numBus),
     ]
 
 if username == 'pzejdl':
