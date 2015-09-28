@@ -38,6 +38,8 @@ class RoutingAlgo:
 
         self.graphVizText = None
 
+        self.pairRankingFunc = None
+
     #----------------------------------------
 
     def __addRoute(self, route, sourceLid, destLid, strict):
@@ -62,7 +64,21 @@ class RoutingAlgo:
         allParis = allPairs[:]
 
         while allPairs:
-            sourceLid, destLid = allPairs.pop(0)
+
+            # if a ranking function for which pair
+            # to assign first was given, use it
+            # now to take the one with the lowest weight
+            if self.pairRankingFunc != None:
+                # note that we recall the function each the time
+                # again so that we can take into account
+                # the new occupancies
+                
+                pairCosts = [ self.pairRankingFunc(self.occupancyTable, sourceLid, destLid) for sourceLid, destLid in allPairs ]
+                bestPairCost, bestPairIndex = min(zip(pairCost, range(len(allPairs))))
+
+                sourceLid, destLid = allPairs.pop(bestPairIndex)
+            else:
+                sourceLid, destLid = allPairs.pop(0)
 
             if sourceLid == destLid:
                 # no route needed for loopback...
