@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, re
+import sys, os, re, utils
 
 scriptDir = os.path.abspath(os.path.dirname(__file__))
 
@@ -28,20 +28,24 @@ if not os.path.exists("bus.txt"):
 if not os.path.exists("iblinkinfo-output"):
     runCmd([ "sudo iblinkinfo > iblinkinfo-output" ])
 
-numRus = len(re.split('\s+',open("rus.txt").read()))
-numBus = len(re.split('\s+',open("bus.txt").read()))
+numRus = len(utils.readHostsFile("rus.txt"))
+numBus = len(utils.readHostsFile("bus.txt"))
+
+import getpass
+username = getpass.getuser()
+
 
 cmdParts = [
     os.path.join(scriptDir, "genRoutes.py"),
     "--srcfile rus.txt",
     "--destfile bus.txt",
     "--iblinkfile iblinkinfo-output",
-    "--algo " + os.path.join(scriptDir, "ranking03.py")
+    "--algo " + os.path.join(scriptDir, "ranking03.py"),
+    "-o routing-table-%dx%d-algo03.txt" % (numRus, numBus),
     ]
+
+if username == 'pzejdl':
+    cmdParts.append("--noplots")
 
 runCmd(cmdParts)
 
-import shutil
-shutil.move("/tmp/routing-table-%dx%d.txt" % (numRus, numBus),
-            "routing-table-%dx%d-algo03.txt" % (numRus, numBus)
-            )
