@@ -185,6 +185,8 @@ class RoutingAlgo:
 
         # self.fabricTable.addRoute(Route.reverse(self.linkData, route), sourceLid, strict = False)
 
+        # make switch to switch routes (needed for e.g. ibqueryerrors)
+        self.fabricTable.makeInterSwitchRoutes()
 
     #----------------------------------------
 
