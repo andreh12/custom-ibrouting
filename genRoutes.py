@@ -4,11 +4,6 @@
 
 import sys, os, commands, time
 
-try:
-    import pylab
-    havePylab = True
-except ImportError:
-    havePylab = False
 
 from pprint import pprint
 
@@ -94,6 +89,19 @@ parser.add_option("--algo",
                   help="name of a python file containing the functions needed by the routing algorithm",
                   metavar="algo.py")
 
+parser.add_option("-o",
+                  dest = "routingTableOutput",
+                  default = None,
+                  type="str",
+                  help="name of the file where the routing tables should be written to. WARNING: This file is overwritten if it existing.",
+                  metavar="table.txt")
+
+parser.add_option("--noplots",
+                  default = False,
+                  action = "store_true",
+                  help="disable plots"
+                  )
+
 (options, ARGV) = parser.parse_args()
 
 
@@ -137,6 +145,15 @@ if overlap:
     print >> sys.stderr,"found %d overlapping hosts between source and destination, exiting" % len(overlap)
     print >> sys.stderr,overlap
     sys.exit(1)
+
+if not options.noplots:
+    try:
+        import pylab
+        havePylab = True
+    except ImportError:
+        havePylab = False
+else:
+    havePylab = False
 
 #----------
 # load the routing algorithm functions
@@ -252,8 +269,11 @@ if False:
     print len(routes)
 
 
+if options.routingTableOutput != None:
+    fout = open(options.routingTableOutput,"w")
+    routingAlgo.fabricTable.doPrint(fout)
+    fout.close()
 
-fout = open("/tmp/routing-table-%dx%d.txt" % (len(sourceHosts), len(destHosts)), "w")
-routingAlgo.fabricTable.doPrint(fout)
-fout.close()
+    print >> sys.stderr,"wrote routing table to",options.routingTableOutput
+
 #----------------------------------------
