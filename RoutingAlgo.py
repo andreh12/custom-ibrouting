@@ -156,7 +156,9 @@ class RoutingAlgo:
         self.occupancyTableMainRoutes = self.occupancyTable.clone()
 
         # also generate the graphviz code now
-        self.graphVizText = self.__makeGraphViz()
+        # commented out temporarily 2015-09-23: fails in this function for some unknown reason
+        # (test directory ~/custom-ibrouting/test-2015-09-23-hi )
+        # self.graphVizText = self.__makeGraphViz()
 
 
         # now rerun over all possible pairs to build routes
