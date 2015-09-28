@@ -49,8 +49,9 @@ def readHostsFile(fname):
         pos = line.find('#')
         if pos != -1:
             line = line[:pos]
-        
-        line = line.strip()
+
+        # remove whitespace and convert to lowercase
+        line = line.strip().lower()
 
         if not line:
             # skip empty lines
