@@ -130,6 +130,14 @@ if not destHosts:
     print >> sys.stderr,"list of destination hosts is empty"
     sys.exit(1)
 
+# check that there are no overlaps between source
+# and destination hosts
+overlap = set(sourceHosts).intersection(destHosts)
+if overlap:
+    print >> sys.stderr,"found %d overlapping hosts between source and destination, exiting" % len(overlap)
+    print >> sys.stderr,overlap
+    sys.exit(1)
+
 #----------
 # load the routing algorithm functions
 #----------
