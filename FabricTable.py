@@ -4,6 +4,7 @@
 # from OccupancyTable import OccupancyTable
 # from Cable import Cable
 from Route import Route
+import sys
 
 from RoutingTable import RoutingTable
 
@@ -208,6 +209,120 @@ class FabricTable:
 
     #----------------------------------------
 
+    def makeInterSwitchRoutes(self):
+        # make some routes between the spine and leaf switches (and reverse direction)
+        # this is needed e.g. by ibqueryerrors
+        #
+        # also makes routes from leaf to leaf and from spine to spine switches
+        # 
+        # note that these routes are just produced
+        # on a round robin basis, nothing is optimized
+        # here assuming that there is not much traffic there anyway
+
+        # count newly assigned routes
+        localRoutesAssigned = 0
+
+        for sourceLids, destLids in (
+            (self.leafSwitchLids, self.spineSwitchLids),
+            (self.spineSwitchLids, self.leafSwitchLids),
+            ):
+
+            for sourceLid in sourceLids:
+                
+                sourceSwitch = self.routingTables[sourceLid]
+
+                for destIndex, destLid in enumerate(destLids):
+
+                    # check that there is not already a route defined for this
+                    # LID (this should not happen actually)
+                    # assert sourceSwitch.getOutputPortForDestination(destLid) == None, "a route from %d to %d has been assigned already" % (sourceLid, destLid)
+
+                    if sourceSwitch.getOutputPortForDestination(destLid) != None:
+                        # route already assigned. This normally happens
+                        # for direct connections (leaf to spine or spine to leaf)
+                        continue
+
+                    # normally we should never come here because local routes have been assigned already
+                    
+                    localRoutesAssigned += 1
+
+                    # get all ports which are connected to the peer switch
+                    ports = sourceSwitch.findLocalPorts(destLid)
+
+                    assert len(ports) >= 1
+                    
+                    # in our setup at P5 we have 3 ports between any 
+                    # pair of leaf / spine switch
+                    assert len(ports) == 3
+
+                    # just take the first port if not assigned yet
+                    sourceSwitch.addLocalRoute(destLid, ports[0])
+
+                    
+
+
+        # now that we have the leaf to spine and spine to leaf routes
+        # we can assign leaf to leaf and spine to spine routes
+        # since now the spine switches have routes (output ports) to
+        # all leaf switches and vice versa
+
+        print >> sys.stderr, "spine <-> leaf localRoutesAssigned=",localRoutesAssigned
+        
+        #----------
+        # now assign spine-spine and leaf-leaf routes
+        #----------
+
+        localRoutesAssigned = 0
+
+        for lids, otherLayerLids in (
+            (sorted(self.leafSwitchLids), sorted(self.spineSwitchLids)),
+            (sorted(self.spineSwitchLids), sorted(self.leafSwitchLids)),
+            ):
+
+            otherLayerSwitchIndex = 0
+            
+            for sourceLid in lids:
+                
+                sourceSwitch = self.routingTables[sourceLid]
+
+                for destIndex, destLid in enumerate(lids):
+
+                    if sourceSwitch.getOutputPortForDestination(destLid) != None:
+                        # route already assigned. This normally happens
+                        # for direct connections (leaf to spine or spine to leaf)
+                        continue
+
+                    localRoutesAssigned += 1
+
+                    # we would need something like self.makeRoutes(..)
+                    # but makeRoutes is not designed to work from
+                    # switch to switch
+                    #
+                    # pick one of the other layer's switches
+                    # (which should have a switch to the final
+                    # destination already)
+                    
+                    otherLayerLid = otherLayerLids[otherLayerSwitchIndex]
+                    otherLayerSwitchIndex = (otherLayerSwitchIndex + 1) % len(otherLayerLids)
+
+                    otherLayerSwitch = self.routingTables[otherLayerLid]
+
+                    # make sure we have already a route to the other layer's switch
+                    assert otherLayerSwitch.getOutputPortForDestination(destLid) != None, "other layer switch lid %d does not have a route to lid %d" % (otherLayerLid, destLid)
+
+                    # for convenience, we just use the same port as we use
+                    # for to reach the other layer's switch (which is not necessary,
+                    # we could chose any of the other two ports)
+
+                    # add the local route
+                    port = sourceSwitch.lidToOutputPort[otherLayerLid]
+                    sourceSwitch.addLocalRoute(destLid, port)
+
+
+        print >> sys.stderr, "spine <-> spine / leaf <-> leaf localRoutesAssigned=",localRoutesAssigned
+
+
+    #----------------------------------------
 
 
 #----------------------------------------------------------------------
