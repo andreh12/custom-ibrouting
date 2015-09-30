@@ -18,6 +18,40 @@ def runCmd(cmdParts):
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
+import getpass
+username = getpass.getuser()
+
+ARGV = sys.argv[1:]
+
+assert len(ARGV) <= 1, "expected at most one command line argument: algorithm file name (with or without .py)"
+
+if len(ARGV) == 1:
+    routingAlgo = ARGV.pop(0)
+else:
+    if username == 'pzejdl':
+        routingAlgo = "RoutingAlgoPetr"
+    elif username == 'aholz':
+        routingAlgo = 'ranking03'
+    else:
+        print >> sys.stderr,"don't know the default algorithm for user '%s'" % username
+        sys.exit(1)
+
+    print >> sys.stderr,"using routing algorithm",routingAlgo
+            
+
+#----------
+# check that the corresponding .py file exist
+#----------
+routingAlgoFile = os.path.join(scriptDir, routingAlgo)
+if not routingAlgoFile.endswith(".py"):
+    routingAlgoFile += ".py"
+
+if not os.path.exists(routingAlgoFile):
+    print >> sys.stderr,"invalid routing algorithm specified, file " + routingAlgoFile + " does not exist"
+    sys.exit(1)
+
+#----------
+
 
 if not os.path.exists("rus.txt"):
     runCmd([ "~aholz/oncall-stuff/printRUsInRun.py > rus.txt" ])
@@ -31,17 +65,19 @@ if not os.path.exists("iblinkinfo-output"):
 numRus = len(utils.readHostsFile("rus.txt"))
 numBus = len(utils.readHostsFile("bus.txt"))
 
-import getpass
-username = getpass.getuser()
 
+#----------
+algoSuffix = os.path.splitext(os.path.basename(routingAlgoFile))[0]
+
+#----------
 
 cmdParts = [
     os.path.join(scriptDir, "genRoutes.py"),
     "--srcfile rus.txt",
     "--destfile bus.txt",
     "--iblinkfile iblinkinfo-output",
-    "--algo " + os.path.join(scriptDir, "ranking03.py"),
-    "-o routing-table-%dx%d-petr.txt" % (numRus, numBus),
+    "--algo " + routingAlgoFile,
+    "-o routing-table-%dx%d-%s.txt" % (numRus, numBus, algoSuffix),
     ]
 
 if username == 'pzejdl':
