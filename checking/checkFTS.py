@@ -4,6 +4,97 @@ import sys, gzip, re
 
 # performs some checks on the output of dumpfts
 
+#----------------------------------------------------------------------
+
+class MultiFTStable:
+    # corresponds to the contents of an FTS file (i.e. multiple
+    # LFT tables)
+
+    def __init__(self, fin):
+        # fin must be a file like object
+        
+        # first index is switch lid or guid (as long as the lid is not known)
+        # second index is destination lid
+        # value is switch output port
+        self.routingTables = {}
+
+        self.guidToLID = {}
+
+        #----------
+
+        for line in fin.read().splitlines():
+            # example:
+            #   Unicast lids [0x0-0x1400] of switch DR path slid 0; dlid 0; 0,1,19,32 guid 0xf4521403001d5d40 (MF0;sw-ib-c2f14-14-01:SX6036/U1):
+
+            mo = re.match('Unicast lids \[\S+\] of switch DR path slid \d+; dlid \d+; \S+ guid (0x[0-9a-f]+) \((\S+)\):$', line)
+            if mo:
+                # use GUID at the moment
+                switchGUID = mo.group(1)
+                switchName = mo.group(2)
+
+                continue
+
+
+            if re.match("\s*Lid\s+Out\s+Destination", line):
+                continue
+
+            if re.match("\s*Port\s+Info", line):
+                continue
+
+            if re.match("\d+ valid lids dumped", line):
+                continue
+
+            # assume it's a regular port entry
+            # e.g.
+            #   0x0003 024 : (Switch portguid 0xf4521403001d5340: 'MF0;sw-ib-c2f15-27-01:SX6036/U1')
+            mo = re.match("(0x[0-9a-f]{4}) (\d\d\d) : \((.*)\)\s*$", line)
+            assert mo
+
+            destLid = int(mo.group(1), 16)
+            outputPort = int(mo.group(2))
+            description = mo.group(3)
+
+            self.routingTables.setdefault(switchGUID, {})[destLid] = outputPort
+
+            # try to see if we can associate LID to a GUID
+
+            mo = re.match("Switch portguid (0x[0-9a-f]+):", description)
+            guid = None
+            if mo:
+                guid = mo.group(1)
+
+            else:
+                mo = re.match("Channel Adapter portguid (0x[0-9a-f]+):", description)
+                if mo:
+                    guid = mo.group(1)
+
+            if guid == None:
+                print "warning: unexpected description format '%s'" % description
+            else:
+                self.addGUID(guid, destLid)
+
+
+        # replace switch GUIDs by LIDs
+        switchGUIDs = self.routingTables.keys()
+
+        self.switchLids = set()
+        for switchGUID in switchGUIDs:
+            lid = self.guidToLID[switchGUID]
+
+            self.switchLids.add(lid)
+
+            self.routingTables[lid] = self.routingTables[switchGUID]
+            del self.routingTables[switchGUID]
+
+    #----------------------------------------
+    def addGUID(self, guid, lid):
+
+        if self.guidToLID.has_key(guid):
+            assert self.guidToLID[guid] == lid
+        else:
+            self.guidToLID[guid] = lid
+
+
 
 #----------------------------------------------------------------------
 # main
@@ -20,105 +111,27 @@ if fname.endswith(".gz"):
 else:
     fin = open(fname)
 
-#----------
 
-# first index is switch lid or guid (as long as the lid is not known)
-# second index is destination lid
-# value is switch output port
-routingTables = {}
+ftsTable = MultiFTStable(fin)
 
-guidToLID = {}
-
-#----------
-def addGUID(guid, lid):
-    if guidToLID.has_key(guid):
-        assert guidToLID[guid] == lid
-    else:
-        guidToLID[guid] = lid
-
-#----------
-
-for line in fin.read().splitlines():
-    # example:
-    #   Unicast lids [0x0-0x1400] of switch DR path slid 0; dlid 0; 0,1,19,32 guid 0xf4521403001d5d40 (MF0;sw-ib-c2f14-14-01:SX6036/U1):
-
-    mo = re.match('Unicast lids \[\S+\] of switch DR path slid \d+; dlid \d+; \S+ guid (0x[0-9a-f]+) \((\S+)\):$', line)
-    if mo:
-        # use GUID at the moment
-        switchGUID = mo.group(1)
-        switchName = mo.group(2)
-
-        continue
-    
-    
-    if re.match("\s*Lid\s+Out\s+Destination", line):
-        continue
-
-    if re.match("\s*Port\s+Info", line):
-        continue
-
-    if re.match("\d+ valid lids dumped", line):
-        continue
-
-    # assume it's a regular port entry
-    # e.g.
-    #   0x0003 024 : (Switch portguid 0xf4521403001d5340: 'MF0;sw-ib-c2f15-27-01:SX6036/U1')
-    mo = re.match("(0x[0-9a-f]{4}) (\d\d\d) : \((.*)\)\s*$", line)
-    assert mo
-
-    destLid = int(mo.group(1), 16)
-    outputPort = int(mo.group(2))
-    description = mo.group(3)
-
-    routingTables.setdefault(switchGUID, {})[destLid] = outputPort
-
-    # try to see if we can associate LID to a GUID
-
-    mo = re.match("Switch portguid (0x[0-9a-f]+):", description)
-    guid = None
-    if mo:
-        guid = mo.group(1)
-        
-    else:
-        mo = re.match("Channel Adapter portguid (0x[0-9a-f]+):", description)
-        if mo:
-            guid = mo.group(1)
-
-    if guid == None:
-        print "warning: unexpected description format '%s'" % description
-    else:
-        addGUID(guid, destLid)
-    
-    
-# replace switch GUIDs by LIDs
-switchGUIDs = routingTables.keys()
-
-switchLids = set()
-for switchGUID in switchGUIDs:
-    lid = guidToLID[switchGUID]
-
-    switchLids.add(lid)
-
-    routingTables[lid] = routingTables[switchGUID]
-    del routingTables[switchGUID]
 
 #----------
 # perform checks
 #----------
 
-allLids = sorted(guidToLID.values())
+allLids = sorted(ftsTable.guidToLID.values())
 
-pcLids = set(allLids) - switchLids
+pcLids = set(allLids) - ftsTable.switchLids
 
 
 if True:
     # look for missing entries, i.e. check if all routing tables have entries for all LIDs
-    for switchLid, switchTable in routingTables.items():
+    for switchLid, switchTable in ftsTable.routingTables.items():
         for lid in allLids:
             if not switchTable.has_key(lid):
                 if lid in pcLids:
                     typeName = "pc"
-                elif lid in switchLids:
+                elif lid in ftsTable.switchLids:
                     typeName = 'switch'
                 else:
                     assert False
@@ -144,7 +157,7 @@ if False:
 #----------
 # index is PC LID, value is a dict of switchLid and switchPort
 pcLidToSwitchPort = {}
-for switchLid, switchTable in routingTables.items():
+for switchLid, switchTable in ftsTable.routingTables.items():
     
     portCounts = {}
 
@@ -185,7 +198,7 @@ if True:
 
     for srcLid in allLids:
         # for the moment, do not test switch to switch connections
-        if srcLid in switchLids:
+        if srcLid in ftsTable.switchLids:
             continue
 
 
@@ -197,15 +210,15 @@ if True:
             srcLid = switchPort['switchLid']
 
         # get the routing table of the switch
-        routingTable = routingTables[srcLid]
+        routingTable = ftsTable.routingTables[srcLid]
         currentSwitchLid = srcLid
 
         for destLid in allLids:
-            if destLid in switchLids:
+            if destLid in ftsTable.switchLids:
                 continue
 
             pathLength = 0
-            
+
             while pathLength < maxPathLength:
 
                 # check if the destination is connected to this switch
@@ -219,9 +232,6 @@ if True:
                 # we must know which switch LID is connected to the output port
                 # to get the next routing table
                 outputPort = routingTable[destLid]
-
-                
-
                 
 
                 # prepare next iteration
