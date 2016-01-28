@@ -35,8 +35,8 @@ iblinkInfoExe = "/usr/sbin/iblinkinfo"
 
 # from Route import Route
 
-#from RoutingAlgo import RoutingAlgo
-from RoutingAlgoPetr import RoutingAlgoPetr as RoutingAlgo
+from RoutingAlgo import RoutingAlgo
+# from RoutingAlgoPetr import RoutingAlgoPetr as RoutingAlgo
 
 #----------------------------------------------------------------------
 
