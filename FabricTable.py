@@ -323,6 +323,11 @@ class FabricTable:
                         # for direct connections (leaf to spine or spine to leaf)
                         continue
 
+                    # check if sourceLid == destLid: then assign port 0
+                    if sourceLid == destLid:
+                        sourceSwitch.addLocalRoute(destLid, 0)
+                        continue
+                    
                     localRoutesAssigned += 1
 
                     # we would need something like self.makeRoutes(..)
