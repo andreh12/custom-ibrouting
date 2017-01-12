@@ -77,6 +77,7 @@ cmdParts = [
     "--destfile bus.txt",
     "--iblinkfile iblinkinfo-output",
     "--algo " + routingAlgoFile,
+    "--report routing.html",
     "-o routing-table-%dx%d-%s.txt" % (numRus, numBus, algoSuffix),
     ]
 
