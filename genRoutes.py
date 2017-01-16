@@ -9,7 +9,7 @@ from pprint import pprint
 
 sys.path.append(os.path.expanduser("~aholz/DAQTools/Diagnostics/trunk/network/"))
 
-import iblinkStatusUtils 
+import iblinkInfoUtils 
 import utils
 
 #----------------------------------------------------------------------
@@ -93,14 +93,14 @@ parser.add_option("--noplots",
 
 if options.iblinkfile != None:
     # read the output of iblinkinfo from the given file
-    linkData = iblinkStatusUtils.IBlinkStatusData(open(options.iblinkfile).read())
+    linkData = iblinkInfoUtils.IBlinkStatusData(open(options.iblinkfile).read())
 else:
     # run iblinkinfo ourselves
     if not os.path.exists(iblinkInfoExe):
         print "this host does not have " + iblinkInfoExe + ". Are you running on a host connected to the Infiniband network ?"
         sys.exit(1)
 
-    linkData = iblinkStatusUtils.IBlinkStatusData(commands.getoutput("/usr/bin/sudo " + iblinkInfoExe))
+    linkData = iblinkInfoUtils.IBlinkStatusData(commands.getoutput("/usr/bin/sudo " + iblinkInfoExe))
 
 if options.srcfile == None:
     print >> sys.stderr,"must specify a list of source hosts"
