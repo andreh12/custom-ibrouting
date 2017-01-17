@@ -9,6 +9,20 @@ from iblinkInfoUtils import IBlinkStatusData
 
 #----------------------------------------------------------------------
 
+class FTStable:
+    # corresponds to a routing table on a single device (switch)
+
+    def __init__(self):
+        # maps from destination LID to output port
+        self.destLidToPort = {}
+
+
+    def setPort(self, destLID, outputPort):
+        self.destLidToPort[destLID] = outputPort
+
+
+#----------------------------------------------------------------------
+
 class MultiFTStable:
     # corresponds to the contents of an FTS file (i.e. multiple
     # LFT tables)
@@ -17,8 +31,7 @@ class MultiFTStable:
         # fin must be a file like object
         
         # first index is switch lid or guid (as long as the lid is not known)
-        # second index is destination lid
-        # value is switch output port
+        # value is a FTStable object
         self.routingTables = {}
 
         self.guidToLID = {}
@@ -57,7 +70,10 @@ class MultiFTStable:
             outputPort = int(mo.group(2))
             description = mo.group(3)
 
-            self.routingTables.setdefault(switchGUID, {})[destLid] = outputPort
+            if not self.routingTables.has_key(switchGUID):
+                self.routingTables[switchGUID] = FTStable()
+
+            self.routingTables[switchGUID].setPort(destLid,outputPort)
 
             # try to see if we can associate LID to a GUID
 
@@ -129,7 +145,7 @@ class MultiFTStable:
             # reverse map
             portToLid = {}
 
-            for lid, port in switchTable.items():
+            for lid, port in switchTable.destLidToPort.items():
                 portCounts[port] = portCounts.get(port,0) + 1
 
                 portToLid[port] = lid
@@ -173,7 +189,7 @@ def checkMissingEntries(ftsTable, linkData):
     for switchLid, switchTable in ftsTable.routingTables.items():
         # for lid in ftsTable.getAllLids():
         for lid in allLIDs:
-            if not switchTable.has_key(lid):
+            if not switchTable.destLidToPort.has_key(lid):
                 if lid in pcLids:
                     typeName = "pc"
                 elif lid in ftsTable.switchLids:
