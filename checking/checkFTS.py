@@ -107,6 +107,13 @@ class MultiFTStable:
 
     #----------------------------------------
 
+    def getLIDfromGUID(self, guid):
+        # @return None if not found
+
+        return self.guidToLID.get(guid, None)
+
+    #----------------------------------------
+
     def getPcLids(self):
         return set(self.getAllLids()) - self.switchLids
 
