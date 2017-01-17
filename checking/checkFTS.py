@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-import sys, gzip, re
+import sys, gzip, re, os
+
+sys.path.append(os.path.expanduser("~aholz/DAQTools/Diagnostics/trunk/network"))
+from iblinkInfoUtils import IBlinkStatusData
 
 # performs some checks on the output of dumpfts
 
@@ -249,6 +252,12 @@ else:
 
 
 ftsTable = MultiFTStable(fin)
+
+
+#----------
+iblinkStatusfile = ARGV.pop(0)
+
+linkData = IBlinkStatusData(open(iblinkStatusfile).read())
 
 
 #----------
