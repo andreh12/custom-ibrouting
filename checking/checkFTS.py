@@ -265,52 +265,54 @@ def checkConnectivity(ftsTable, linkData):
 # main
 #----------------------------------------------------------------------
 
-ARGV = sys.argv[1:]
+if __name__ == '__main__':
 
-assert len(ARGV) == 2
+    ARGV = sys.argv[1:]
 
-fname = ARGV.pop(0)
+    assert len(ARGV) == 2
 
-if fname.endswith(".gz"):
-    fin = gzip.open(fname)
-else:
-    fin = open(fname)
+    fname = ARGV.pop(0)
 
-
-ftsTable = MultiFTStable(fin)
-
-
-#----------
-iblinkStatusfile = ARGV.pop(0)
-
-linkData = IBlinkStatusData(open(iblinkStatusfile).read())
+    if fname.endswith(".gz"):
+        fin = gzip.open(fname)
+    else:
+        fin = open(fname)
 
 
-#----------
-# perform checks
-#----------
-
-checkMissingEntries(ftsTable, linkData)
-
-# check that we can reach lid from each other lid
-checkConnectivity(ftsTable, linkData)
+    ftsTable = MultiFTStable(fin)
 
 
-if False:
     #----------
-    # find ports where switches are connected to switches
-    #
-    # assume ports for which there is more than one destination LID
-    # are connected to another switch and those on which
-    # only one destination LID is found are PCs (this may actually
-    # also happen for a switch which has only one port connected...)
-    #----------
-    pass
+    iblinkStatusfile = ARGV.pop(0)
 
-#----------
-# find to which switch each PC is connected to: look at 
-# those switch ports to which only one destination LID
-# is assigned
-#----------
+    linkData = IBlinkStatusData(open(iblinkStatusfile).read())
+
+
+    #----------
+    # perform checks
+    #----------
+
+    checkMissingEntries(ftsTable, linkData)
+
+    # check that we can reach lid from each other lid
+    checkConnectivity(ftsTable, linkData)
+
+
+    if False:
+        #----------
+        # find ports where switches are connected to switches
+        #
+        # assume ports for which there is more than one destination LID
+        # are connected to another switch and those on which
+        # only one destination LID is found are PCs (this may actually
+        # also happen for a switch which has only one port connected...)
+        #----------
+        pass
+
+    #----------
+    # find to which switch each PC is connected to: look at 
+    # those switch ports to which only one destination LID
+    # is assigned
+    #----------
 
 
