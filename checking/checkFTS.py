@@ -151,16 +151,21 @@ class MultiFTStable:
 
     def getSwitchPortFromPClid(self, pclid):
         # returns a dict with 'switchLid' and 'switchPort'
-
         return self.pcLidToSwitchPort[pclid]
     
 
 #----------------------------------------------------------------------
 
-def checkMissingEntries(ftsTable):
+def checkMissingEntries(ftsTable, linkData):
     # look for missing entries, i.e. check if all routing tables have entries for all LIDs
+
+    allLIDs = sorted(linkData.allLIDs)
+
+    pcLids = ftsTable.getPcLids()
+
     for switchLid, switchTable in ftsTable.routingTables.items():
-        for lid in ftsTable.getAllLids():
+        # for lid in ftsTable.getAllLids():
+        for lid in allLIDs:
             if not switchTable.has_key(lid):
                 if lid in pcLids:
                     typeName = "pc"
@@ -174,7 +179,7 @@ def checkMissingEntries(ftsTable):
 
 #----------------------------------------------------------------------
 
-def checkConnectivity(ftsTable):
+def checkConnectivity(ftsTable, linkData):
     # check that from each lid we can reach each other lid
 
     maxPathLength = 10
@@ -183,31 +188,40 @@ def checkConnectivity(ftsTable):
 
     pcLids = ftsTable.getPcLids()
 
-    for srcLid in allLids:
+    for srcLid in sorted(allLids):
         # for the moment, do not test switch to switch connections
-        if srcLid in ftsTable.switchLids:
-            continue
+        # if srcLid in ftsTable.switchLids:
+        #    continue
 
 
         # if the source is a PC, we first go to the switch
         if srcLid in pcLids:
-            switchPort = ftsTable.getSwitchPortFromPClid(srcLid)
+            switchPortData = ftsTable.getSwitchPortFromPClid(srcLid)
 
             # go to the switch
-            srcLid = switchPort['switchLid']
+            currentSwitchLid = switchPortData['switchLid']
 
-        # get the routing table of the switch
-        routingTable = ftsTable.routingTables[srcLid]
-        currentSwitchLid = srcLid
+        else:
+            # we start from a switch
+            currentSwitchLid = srcLid
+            
 
         for destLid in allLids:
-            if destLid in ftsTable.switchLids:
-                # skip test for reaching switches
-                continue
+            ## if destLid in ftsTable.switchLids:
+            ##     # skip test for reaching switches
+            ##     continue
+
+
+            switchLidsSeen = [ ]
 
             pathLength = 0
 
             while pathLength < maxPathLength:
+
+                # get the routing table of the switch
+                routingTable = ftsTable.routingTables[currentSwitchLid]
+
+                switchLidsSeen.append(currentSwitchLid)
 
                 # check if the destination is connected to this switch
                 if ftsTable.getSwitchPortFromPClid(destLid)['switchLid'] == currentSwitchLid:
@@ -216,21 +230,33 @@ def checkConnectivity(ftsTable):
                     #       right output port
                     break
 
+                if currentSwitchLid == destLid:
+                    # we've found a destination switch
+                    break
+
                 # we must go over another switch
                 # we must know which switch LID is connected to the output port
                 # to get the next routing table
+                # 
+                # however we can't know what is at the other end
+                # of the cable without iblinkinfo data
                 outputPort = routingTable[destLid]
-                
+
+                peerSwitchData = linkData.getSwitchPortData(currentSwitchLid, outputPort)
+
+                peerLid = peerSwitchData['peerLid']
 
                 # prepare next iteration
+                currentSwitchLid = peerLid
+
                 pathLength += 1
 
                 
 
             if pathLength >= maxPathLength:
-                print "loop detected from %d to %d" % (srcLid, destLid)
+                print "loop detected from %d to %d" % (srcLid, destLid),switchLidsSeen
             else:
-                print "ok from %d to %d" % (srcLid, destLid)
+                print "ok from %d to %d" % (srcLid, destLid),switchLidsSeen
             
 
 
@@ -241,7 +267,7 @@ def checkConnectivity(ftsTable):
 
 ARGV = sys.argv[1:]
 
-assert len(ARGV) == 1
+assert len(ARGV) == 2
 
 fname = ARGV.pop(0)
 
@@ -264,10 +290,10 @@ linkData = IBlinkStatusData(open(iblinkStatusfile).read())
 # perform checks
 #----------
 
-# checkMissingEntries(ftsTable)
+checkMissingEntries(ftsTable, linkData)
 
 # check that we can reach lid from each other lid
-checkConnectivity(ftsTable)
+checkConnectivity(ftsTable, linkData)
 
 
 if False:
