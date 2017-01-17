@@ -20,6 +20,17 @@ class FTStable:
     def setPort(self, destLID, outputPort):
         self.destLidToPort[destLID] = outputPort
 
+    def replaceLid(self, oldLid, newLid):
+        
+        if self.destLidToPort.has_key(newLid):
+            raise Exception("new lid " + str(newLid) + " exists already")
+
+        # does NOT insist that the old lid exists
+        # and the new one does not
+        if self.destLidToPort.has_key(oldLid):
+
+            self.destLidToPort[newLid] = self.destLidToPort[oldLid]
+            del self.destLidToPort[oldLid]
 
 #----------------------------------------------------------------------
 
@@ -191,6 +202,50 @@ class MultiFTStable:
         # returns a dict with 'switchLid' and 'switchPort'
         return self.pcLidToSwitchPort[pclid]
     
+    #----------------------------------------
+
+    def replaceLid(self, oldLid, newLid):
+        # replaces a lid by a new lid. Throws an exception
+        # if the new lid already exists or the old one does not
+
+        if not oldLid in self.guidToLID.values():
+            raise Exception("old lid " + str(oldLid) + " not found")
+
+        if newLid in self.guidToLID.values():
+            raise Exception("new lid " + str(oldLid) + " exists already")
+
+        #----------
+        # self.routingTables
+        #----------
+        for routingTable in self.routingTables.values():
+            routingTable.replaceLid(oldLid, newLid)
+
+        # if this is a switch, replace it
+        if self.routingTables.has_key(oldLid):
+            assert not self.routingTables.has_key(newLid), "internal error"
+            
+            self.routingTables[newLid] = self.routingTables[oldLid]
+            del self.routingTables[oldLid]
+
+        #----------
+        # self.guidToLID
+        #----------        
+
+        guid = self.getGUIDfromLID(oldLid)
+        
+        assert self.getGUIDfromLID(newLid) == None, "internal error"
+
+        self.guidToLID[guid] = newLid
+
+        #----------
+        # self.switchLids
+        #----------
+
+        assert not newLid in self.switchLids
+        if oldLid in switchLids:
+            # it's a switch 
+            self.switchLids.remove(oldLid)
+            self.switchLids.insert(newLid)
 
 #----------------------------------------------------------------------
 
