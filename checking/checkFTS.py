@@ -262,7 +262,7 @@ class MultiFTStable:
         #----------
 
         assert not newLid in self.switchLids
-        if oldLid in switchLids:
+        if oldLid in self.switchLids:
             # it's a switch 
             self.switchLids.remove(oldLid)
             self.switchLids.insert(newLid)
