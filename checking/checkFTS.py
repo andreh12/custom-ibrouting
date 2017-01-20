@@ -48,6 +48,19 @@ class FTStable:
 
     #----------------------------------------
 
+    def removeLid(self, lid):
+        # removes all entries corresponding to the given LID
+        # 
+        # note that the LID may not be known on this LFT
+        # (but it actually should)
+        if self.destLidToPort.has_key(lid):
+            del self.destLidToPort[lid]
+
+        if self.destLidToDescription.has_key(lid):
+            del self.destLidToDescription[lid]
+
+    #----------------------------------------
+
     def doPrint(self, fout = sys.stdout):
         # print the header
         #
@@ -314,6 +327,32 @@ class MultiFTStable:
             # it's a switch 
             self.switchLids.remove(oldLid)
             self.switchLids.add(newLid)
+
+    #----------------------------------------
+
+    def removeLid(self, lid):
+        # removes all entries corresponding to the given LID
+        #
+        # refuses to remove LIDs of switches (in principle
+        # this would remove the entire switch)
+        if not lid in self.guidToLID.values():
+            raise Exception("lid " + str(lid) + " not found")
+
+        # check whether this is a switch
+        if self.routingTables.has_key(lid):
+            raise Exception("lid " + str(lid) + " corresponds to a switch, refusing to remove it")
+        #----------
+        # self.routingTables
+        #----------
+        for routingTable in self.routingTables.values():
+            routingTable.removeLid(lid)
+
+        #----------
+        # self.guidToLID
+        #----------        
+
+        guid = self.getGUIDfromLID(lid)
+        del self.guidToLID[guid]
 
     #----------------------------------------
 
