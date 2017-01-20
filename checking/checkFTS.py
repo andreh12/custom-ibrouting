@@ -90,8 +90,8 @@ class FTStable:
 
             if outputPort == None:
                 continue
-            
-            description = self.destLidToDescription.get(lid, "(no description yet)")
+
+            description = self.destLidToDescription.get(lid, "no description yet")
 
             print >> fout,"0x%04x %03d : (%s)" % (lid,
                                                outputPort,
@@ -173,7 +173,6 @@ class MultiFTStable:
                     description2 = mo.group(2)
                 else:
                     description2 = None
-
 
             self.routingTables[switchGUID].setPort(destLid,outputPort, description)
 
