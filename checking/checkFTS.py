@@ -12,13 +12,23 @@ from iblinkInfoUtils import IBlinkStatusData
 class FTStable:
     # corresponds to a routing table on a single device (switch)
 
-    def __init__(self):
+    #----------------------------------------
+
+    def __init__(self, guid, description):
         # maps from destination LID to output port
         self.destLidToPort = {}
+        self.destLidToDescription = {}
 
+        self.guid = guid
+        self.description = description
 
-    def setPort(self, destLID, outputPort):
+    #----------------------------------------
+
+    def setPort(self, destLID, outputPort, description):
         self.destLidToPort[destLID] = outputPort
+        self.destLidToDescription[destLID] = description
+
+    #----------------------------------------
 
     def replaceLid(self, oldLid, newLid):
         
@@ -46,6 +56,7 @@ class MultiFTStable:
         self.routingTables = {}
 
         self.guidToLID = {}
+        self.guidToDescription = {}
 
         #----------
 
@@ -82,26 +93,33 @@ class MultiFTStable:
             description = mo.group(3)
 
             if not self.routingTables.has_key(switchGUID):
-                self.routingTables[switchGUID] = FTStable()
+                self.routingTables[switchGUID] = FTStable(switchGUID, switchName)
 
-            self.routingTables[switchGUID].setPort(destLid,outputPort)
+            #----------
 
             # try to see if we can associate LID to a GUID
 
-            mo = re.match("Switch portguid (0x[0-9a-f]+):", description)
+            mo = re.match("Switch portguid (0x[0-9a-f]+): '(.*)'", description)
             guid = None
             if mo:
                 guid = mo.group(1)
+                description2 = mo.group(2)
 
             else:
-                mo = re.match("Channel Adapter portguid (0x[0-9a-f]+):", description)
+                mo = re.match("Channel Adapter portguid (0x[0-9a-f]+): '(.*)'", description)
                 if mo:
                     guid = mo.group(1)
+                    description2 = mo.group(2)
+                else:
+                    description2 = None
+
+
+            self.routingTables[switchGUID].setPort(destLid,outputPort, description)
 
             if guid == None:
                 print "warning: unexpected description format '%s'" % description
             else:
-                self.addGUID(guid, destLid)
+                self.addGUID(guid, destLid, description2)
 
 
         # replace switch GUIDs by LIDs
@@ -119,12 +137,14 @@ class MultiFTStable:
         self.__fillPClidToSwitchPort()
 
     #----------------------------------------
-    def addGUID(self, guid, lid):
+    def addGUID(self, guid, lid, description):
+        # description is things like 'ibmon-c2e15-43-01 HCA-1'
 
         if self.guidToLID.has_key(guid):
             assert self.guidToLID[guid] == lid
         else:
             self.guidToLID[guid] = lid
+            self.guidToDescription[guid] = description
 
     #----------------------------------------
 
@@ -147,7 +167,7 @@ class MultiFTStable:
         # actually just returns the first hit,
         # does not check for duplicates
 
-        for guid, theLid in self.guidToLID:
+        for guid, theLid in self.guidToLID.items():
             if lid == theLid:
                 return guid
 
