@@ -232,7 +232,7 @@ class MultiFTStable:
             raise Exception("old lid " + str(oldLid) + " not found")
 
         if newLid in self.guidToLID.values():
-            raise Exception("new lid " + str(oldLid) + " exists already")
+            raise Exception("new lid " + str(newLid) + " exists already")
 
         #----------
         # self.routingTables
