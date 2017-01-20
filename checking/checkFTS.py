@@ -42,6 +42,10 @@ class FTStable:
             self.destLidToPort[newLid] = self.destLidToPort[oldLid]
             del self.destLidToPort[oldLid]
 
+        if self.destLidToDescription.has_key(oldLid):
+            self.destLidToDescription[newLid] = self.destLidToDescription[oldLid]
+            del self.destLidToDescription[oldLid]
+
     #----------------------------------------
 
     def doPrint(self, fout = sys.stdout):
