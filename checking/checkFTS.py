@@ -42,6 +42,50 @@ class FTStable:
             self.destLidToPort[newLid] = self.destLidToPort[oldLid]
             del self.destLidToPort[oldLid]
 
+    #----------------------------------------
+
+    def doPrint(self, fout = sys.stdout):
+        # print the header
+        #
+        # example line:
+        #    Unicast lids [0x0-0x1400] of switch DR path slid 0; dlid 0; 0,1,19,32 guid 0xf4521403001d5d40 (MF0;sw-ib-c2f14-14-01:SX6036/U1):
+        #
+        # the parts after 'DR path' seem to differ slightly from switch to switch but not
+        # clear whether this is actually read by OpenSM ?
+
+        print >> fout, "Unicast lids [0x%x-0x%x] of switch DR path slid 0; dlid 0; 0,1,19,32 guid %s (%s):" % (
+            min(self.destLidToPort.keys()),
+            max(self.destLidToPort.keys()),
+            self.guid,
+            self.description,
+            )
+
+        #----------
+        # print the per lid table
+        #----------
+        print >> fout,"  Lid  Out   Destination"
+        print >> fout,"       Port     Info "
+
+        numValidLids = 0
+        for lid in sorted(self.destLidToPort.keys()):
+
+            outputPort = self.destLidToPort[lid]
+
+            if outputPort == None:
+                continue
+            
+            description = self.destLidToDescription.get(lid, "(no description yet)")
+
+            print >> fout,"0x%04x %03d : (%s)" % (lid,
+                                               outputPort,
+                                                description
+                                                )
+
+            numValidLids += 1
+
+        print >> fout, "%d valid lids dumped " % numValidLids
+
+        
 #----------------------------------------------------------------------
 
 class MultiFTStable:
@@ -265,7 +309,14 @@ class MultiFTStable:
         if oldLid in self.switchLids:
             # it's a switch 
             self.switchLids.remove(oldLid)
-            self.switchLids.insert(newLid)
+            self.switchLids.add(newLid)
+
+    #----------------------------------------
+
+    def doPrint(self, fout = sys.stdout):
+        for routingTable in self.routingTables.values():
+            routingTable.doPrint(fout)
+
 
 #----------------------------------------------------------------------
 
