@@ -196,6 +196,11 @@ class RoutingAlgo:
         # make switch to switch routes (needed for e.g. ibqueryerrors)
         self.fabricTable.makeInterSwitchRoutes()
 
+        # some switch to host routes may still not be there,
+        # fill them (without caring about load balancing,
+        # these routes are typically needed only for monitoring)
+        self.fabricTable.makeMissingSwitchToHostRoutes(self.linkData.hostLIDs)
+
     #----------------------------------------
 
     def __makeGraphViz(self):

@@ -137,6 +137,7 @@ class FabricTable:
                      spineSwitchPort)
 
     #----------------------------------------
+
     def findLocalPortsForDestination(self, switchLid, destLid):
         # returns list of all output ports on the given switch physically connected to the given destination
 
@@ -390,6 +391,61 @@ class FabricTable:
 
 
         print >> sys.stderr, "spine <-> spine / leaf <-> leaf localRoutesAssigned=",localRoutesAssigned
+
+
+    #----------------------------------------
+    def makeMissingSwitchToHostRoutes(self, hostLIDs):
+        # adds missing routes from switches to hosts
+        # (does not do any balancing, these routes
+        # are typically only needed for monitoring)
+
+        # make a local copy which we can index
+        leafSwitchLids  = list(self.leafSwitchLids)
+        spineSwitchLids = list(self.spineSwitchLids)
+
+        # when going from leaf switches to a given host,
+        # we round robin over the leaf switches
+        # 
+        # for spine switches, there is only one
+        # leaf switch we can use
+        nextSpineSwitch = 0
+
+        # note that we do NOT have to add the reverse route
+        # because makeInterSwitchRoutes(..) should be called before
+        # so once we arrive from a server on a switch, it should
+        # know how to reach any other switch
+
+        for destLid in hostLIDs:
+
+            # find which leaf switch destLid is connected to
+            destSwitch = self.findLeafSwitchFromHostLid(destLid)
+            destSwitchLid = destSwitch.switchLid
+
+            #----------
+            # assign missing routes from spine switches to hosts
+            #----------        
+            for sourceLid in spineSwitchLids:
+                if sourceLid == destSwitchLid:
+                    # no need to add loopback route
+                    continue
+
+                # check if there is already an entry on the spine
+                # switch for destLid
+                spineSwitch = self.routingTables[sourceLid]
+
+                if spineSwitch.getOutputPortForDestination(destLid) == None:
+                    # we must add an entry
+
+                    # find any of the ports of the spine switch sourceLid 
+                    # going to destSwitchLid
+                    ports = spineSwitch.findLocalPorts(destSwitchLid)
+                    assert ports
+
+                    # just take the 'first' port of those connected to 
+                    # the required leaf switch
+                    
+                    spineSwitch.addLocalRoute(destLid, ports[0], strict = True)
+
 
 
     #----------------------------------------
