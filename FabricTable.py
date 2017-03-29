@@ -134,7 +134,7 @@ class FabricTable:
                      spineSwitchLid,
                      spineSwitchPort)
 
-    #----------------------------------------                                                                                                   
+    #----------------------------------------
     def findLocalPortsForDestination(self, switchLid, destLid):
         # returns list of all output ports on the given switch physically connected to the given destination
 
