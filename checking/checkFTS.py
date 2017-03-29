@@ -395,7 +395,9 @@ def checkMissingEntries(ftsTable, linkData):
                 else:
                     assert False
 
-                print "switch %d does not have an entry for %s lid %d" % (switchLid, typeName, lid)
+                print "switch %d (%s) does not have an entry for %s lid %d (%s)" % (switchLid, 
+                                                                                    linkData.getDeviceName(switchLid),
+                                                                                    typeName, lid, linkData.getDeviceName(lid))
 
 
 #----------------------------------------------------------------------
