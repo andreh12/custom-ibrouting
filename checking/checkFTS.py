@@ -407,10 +407,82 @@ def checkMissingEntries(ftsTable, linkData, showDeviceNames):
 
 #----------------------------------------------------------------------
 
-def checkConnectivity(ftsTable, linkData, showDeviceNames):
-    # check that from each lid we can reach each other lid
+
+def checkConnectivitySinglePair(srcLid, destLid, pcLids, showDeviceNames):
+    # note that we need to rerun/reset this for every destination
+    # again
 
     maxPathLength = 10
+
+    # if the source is a PC, we first go to the switch
+    if srcLid in pcLids:
+        switchPortData = ftsTable.getSwitchPortFromPClid(srcLid)
+
+        # go to the switch
+        currentSwitchLid = switchPortData['switchLid']
+
+    else:
+        # we start from a switch
+        currentSwitchLid = srcLid
+
+    #----------
+
+    switchLidsSeen = [ ]
+
+    pathLength = 0
+
+    while pathLength < maxPathLength:
+
+        # get the routing table of the switch
+        routingTable = ftsTable.routingTables[currentSwitchLid]
+
+        switchLidsSeen.append(currentSwitchLid)
+
+        # check if the destination is connected to this switch
+        if ftsTable.getSwitchPortFromPClid(destLid)['switchLid'] == currentSwitchLid:
+            # yes, we've found the destination
+            # TODO: check again that it points to the 
+            #       right output port
+            break
+
+        if currentSwitchLid == destLid:
+            # we've found a destination switch
+            break
+
+        # we must go over another switch
+        # we must know which switch LID is connected to the output port
+        # to get the next routing table
+        # 
+        # however we can't know what is at the other end
+        # of the cable without iblinkinfo data
+        outputPort = routingTable.getOutputPort(destLid)
+
+        peerSwitchData = linkData.getSwitchPortData(currentSwitchLid, outputPort)
+
+        peerLid = peerSwitchData['peerLid']
+
+        # prepare next iteration
+        currentSwitchLid = peerLid
+
+        pathLength += 1
+
+
+    if not showDeviceNames:
+        switchLidsDesc = switchLidsSeen
+    else:
+        switchLidsDesc = [ "%d (%s)" % (lid, linkData.getDeviceName(lid)) for lid in switchLidsSeen ]
+
+    if pathLength >= maxPathLength:
+        print "loop detected from %d to %d" % (srcLid, destLid),switchLidsDesc
+    else:
+        print "ok from %d to %d" % (srcLid, destLid), switchLidsDesc
+    
+
+
+#----------------------------------------------------------------------
+
+def checkConnectivity(ftsTable, linkData, showDeviceNames):
+    # check that from each lid we can reach each other lid
 
     allLids = ftsTable.getAllLids()
 
@@ -421,75 +493,8 @@ def checkConnectivity(ftsTable, linkData, showDeviceNames):
         # if srcLid in ftsTable.switchLids:
         #    continue
 
-
-
         for destLid in allLids:
-
-            # note that we need to rerun/reset this for every destination
-            # again
-
-            # if the source is a PC, we first go to the switch
-            if srcLid in pcLids:
-                switchPortData = ftsTable.getSwitchPortFromPClid(srcLid)
-
-                # go to the switch
-                currentSwitchLid = switchPortData['switchLid']
-
-            else:
-                # we start from a switch
-                currentSwitchLid = srcLid
-
-            #----------
-
-            switchLidsSeen = [ ]
-
-            pathLength = 0
-
-            while pathLength < maxPathLength:
-
-                # get the routing table of the switch
-                routingTable = ftsTable.routingTables[currentSwitchLid]
-
-                switchLidsSeen.append(currentSwitchLid)
-
-                # check if the destination is connected to this switch
-                if ftsTable.getSwitchPortFromPClid(destLid)['switchLid'] == currentSwitchLid:
-                    # yes, we've found the destination
-                    # TODO: check again that it points to the 
-                    #       right output port
-                    break
-
-                if currentSwitchLid == destLid:
-                    # we've found a destination switch
-                    break
-
-                # we must go over another switch
-                # we must know which switch LID is connected to the output port
-                # to get the next routing table
-                # 
-                # however we can't know what is at the other end
-                # of the cable without iblinkinfo data
-                outputPort = routingTable.getOutputPort(destLid)
-
-                peerSwitchData = linkData.getSwitchPortData(currentSwitchLid, outputPort)
-
-                peerLid = peerSwitchData['peerLid']
-
-                # prepare next iteration
-                currentSwitchLid = peerLid
-
-                pathLength += 1
-
-                
-            if not showDeviceNames:
-                switchLidsDesc = switchLidsSeen
-            else:
-                switchLidsDesc = [ "%d (%s)" % (lid, linkData.getDeviceName(lid)) for lid in switchLidsSeen ]
-
-            if pathLength >= maxPathLength:
-                print "loop detected from %d to %d" % (srcLid, destLid),switchLidsDesc
-            else:
-                print "ok from %d to %d" % (srcLid, destLid), switchLidsDesc
+            checkConnectivitySinglePair(srcLid, destLid, pcLids, showDeviceNames)
             
 
 
