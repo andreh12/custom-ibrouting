@@ -119,6 +119,9 @@ class MultiFTStable:
         self.guidToLID = {}
         self.guidToDescription = {}
 
+        # guids of the switches, in order in which they were read
+        self.switchGUIDorder = []
+
         #----------
 
         for line in fin.read().splitlines():
@@ -130,6 +133,8 @@ class MultiFTStable:
                 # use GUID at the moment
                 switchGUID = mo.group(1)
                 switchName = mo.group(2)
+
+                self.switchGUIDorder.append(switchGUID)
 
                 continue
 
@@ -356,7 +361,12 @@ class MultiFTStable:
     #----------------------------------------
 
     def doPrint(self, fout = sys.stdout):
-        for routingTable in self.routingTables.values():
+
+        # print switches in same order as they were read
+        for guid in self.switchGUIDorder:
+            lid = self.guidToLID[guid]
+
+            routingTable = self.routingTables[lid]
             routingTable.doPrint(fout)
 
 
