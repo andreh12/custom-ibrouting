@@ -399,6 +399,12 @@ class FabricTable:
         # (does not do any balancing, these routes
         # are typically only needed for monitoring)
 
+        # note that we only need to assign routes from
+        # spine switches to hosts. Since we already
+        # have all routes from host to host
+        # each leaf switch has already a routing table
+        # entry for each host
+
         # make a local copy which we can index
         leafSwitchLids  = list(self.leafSwitchLids)
         spineSwitchLids = list(self.spineSwitchLids)
