@@ -435,10 +435,6 @@ def checkConnectivity(ftsTable, linkData):
                 currentSwitchLid = srcLid
 
             #----------
-            ## if destLid in ftsTable.switchLids:
-            ##     # skip test for reaching switches
-            ##     continue
-
 
             switchLidsSeen = [ ]
 
