@@ -501,8 +501,7 @@ if __name__ == '__main__':
     #----------
     iblinkStatusfile = ARGV.pop(0)
 
-    linkData = IBlinkStatusData(open(iblinkStatusfile).read())
-
+    linkData = IBlinkStatusData.fromIBlinkInfoOutput(open(iblinkStatusfile).read())
 
     #----------
     # perform checks
