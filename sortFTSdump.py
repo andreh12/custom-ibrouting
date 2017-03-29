@@ -52,6 +52,8 @@ for line in sys.stdin.read().splitlines():
     
     currentSwitchLines.append(line)
 
+addSwitch()
+
 
 # now print them in increasing order of switch name
 
