@@ -93,7 +93,8 @@ parser.add_option("--noplots",
 
 if options.iblinkfile != None:
     # read the output of iblinkinfo from the given file
-    linkData = iblinkInfoUtils.IBlinkStatusData(open(options.iblinkfile).read())
+    # linkData = iblinkInfoUtils.IBlinkStatusData(open(options.iblinkfile).read())
+    linkData = iblinkInfoUtils.IBlinkStatusData.fromIBlinkInfoOutput(open(options.iblinkfile).read())
 else:
     # run iblinkinfo ourselves
     if not os.path.exists(iblinkInfoExe):
