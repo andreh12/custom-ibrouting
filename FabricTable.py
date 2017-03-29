@@ -31,6 +31,32 @@ class FabricTable:
 
     #----------------------------------------
 
+    def loadTableFile(self, fname):
+        # loads an existing routing table file
+        # (e.g. when trying to update an existing one)
+        from checking.MultiFTStable import MultiFTStable
+
+        fin = open(fname)
+        
+        mfts = MultiFTStable(fin)
+        # note that this assumes that the LIDs did not change
+        # between this table and the given output of iblinkinfo
+        # 
+        # TODO: check by GUID instead of LID
+
+        for switchLid, fts in mfts.routingTables.items():
+            
+            routingTable = self.routingTables[switchLid]
+            
+            for lid, port in fts.destLidToPort.items():
+
+                # add the local route
+                routingTable.addLocalRoute(lid, port, strict = True)
+            
+        # end of loop over switches
+
+    #----------------------------------------
+
     def findLeafSwitchFromHostLid(self, hostLid):
 
         for leafSwitchLid in self.leafSwitchLids:

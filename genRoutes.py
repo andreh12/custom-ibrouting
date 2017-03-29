@@ -88,6 +88,12 @@ parser.add_option("--noplots",
                   help="disable plots"
                   )
 
+parser.add_option("--load",
+                  default = None,
+                  type = "str",
+                  help="routing table file to start from"
+                  )
+
 (options, ARGV) = parser.parse_args()
 
 
@@ -196,6 +202,11 @@ for lids, hosts in (
 #     routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, routeRanking01)
 
 routingAlgo = RoutingAlgo(linkData, sourceLids, destLids, None)
+
+if options.load != None:
+    # load an existing routing table
+    routingAlgo.loadTableFile(options.load)
+
 routingAlgo.routeRankingFunc = RoutingAlgoRankingFunctions.makeRouteRankingFunction(routingAlgo)
 
 routingAlgo.run()

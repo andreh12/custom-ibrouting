@@ -42,6 +42,14 @@ class RoutingAlgo:
 
     #----------------------------------------
 
+    def loadTableFile(self, fname):
+        # loads an existing routing table file
+        # (e.g. when trying to update an existing one)
+
+        self.fabricTable.loadTableFile(fname)
+
+    #----------------------------------------
+
     def __addRoute(self, route, sourceLid, destLid, strict):
 
         print >> sys.stderr,"assigning route for sourceLid=%d destLid=%d:" % (sourceLid, destLid), route
