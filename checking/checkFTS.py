@@ -377,7 +377,7 @@ class MultiFTStable:
 
 #----------------------------------------------------------------------
 
-def checkMissingEntries(ftsTable, linkData):
+def checkMissingEntries(ftsTable, linkData, showDeviceNames):
     # look for missing entries, i.e. check if all routing tables have entries for all LIDs
 
     allLIDs = sorted(linkData.allLIDs)
@@ -395,14 +395,19 @@ def checkMissingEntries(ftsTable, linkData):
                 else:
                     assert False
 
-                print "switch %d (%s) does not have an entry for %s lid %d (%s)" % (switchLid, 
-                                                                                    linkData.getDeviceName(switchLid),
-                                                                                    typeName, lid, linkData.getDeviceName(lid))
+                if showDeviceNames:
+                    print "switch %d (%s) does not have an entry for %s lid %d (%s)" % (switchLid, 
+                                                                                        linkData.getDeviceName(switchLid),
+                                                                                        typeName, lid, linkData.getDeviceName(lid))
+                else:
+                    print "switch %d does not have an entry for %s lid %d" % (switchLid, 
+                                                                              typeName, lid)
+                    
 
 
 #----------------------------------------------------------------------
 
-def checkConnectivity(ftsTable, linkData):
+def checkConnectivity(ftsTable, linkData, showDeviceNames):
     # check that from each lid we can reach each other lid
 
     maxPathLength = 10
@@ -476,11 +481,15 @@ def checkConnectivity(ftsTable, linkData):
                 pathLength += 1
 
                 
+            if not showDeviceNames:
+                switchLidsDesc = switchLidsSeen
+            else:
+                switchLidsDesc = [ "%d (%s)" % (lid, linkData.getDeviceName(lid)) for lid in switchLidsSeen ]
 
             if pathLength >= maxPathLength:
-                print "loop detected from %d to %d" % (srcLid, destLid),switchLidsSeen
+                print "loop detected from %d to %d" % (srcLid, destLid),switchLidsDesc
             else:
-                print "ok from %d to %d" % (srcLid, destLid),switchLidsSeen
+                print "ok from %d to %d" % (srcLid, destLid), switchLidsDesc
             
 
 
@@ -491,7 +500,22 @@ def checkConnectivity(ftsTable, linkData):
 
 if __name__ == '__main__':
 
-    ARGV = sys.argv[1:]
+    from optparse import OptionParser
+    parser = OptionParser("""
+
+        usage: %prog [options] fts-table-file iblinkinfo-output-file
+
+        performs some checks on Infiniband routing tables
+        """
+        )
+
+    parser.add_option("--device-names",
+                      default = False,
+                      dest = "showDeviceNames",
+                      action = "store_true",
+                      help="print device names instead of just LIDs",
+                      )
+    (options, ARGV) = parser.parse_args()
 
     assert len(ARGV) == 2
 
@@ -505,7 +529,6 @@ if __name__ == '__main__':
 
     ftsTable = MultiFTStable(fin)
 
-
     #----------
     iblinkStatusfile = ARGV.pop(0)
 
@@ -515,10 +538,10 @@ if __name__ == '__main__':
     # perform checks
     #----------
 
-    checkMissingEntries(ftsTable, linkData)
+    checkMissingEntries(ftsTable, linkData, options.showDeviceNames)
 
     # check that we can reach lid from each other lid
-    checkConnectivity(ftsTable, linkData)
+    checkConnectivity(ftsTable, linkData, options.showDeviceNames)
 
 
     if False:
