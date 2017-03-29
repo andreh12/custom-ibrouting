@@ -170,7 +170,7 @@ class FabricTable:
 
         # find the output switch
         outputLeafSwitch = self.findLeafSwitchFromHostLid(destLid)
-        assert outputLeafSwitch != None
+        assert outputLeafSwitch != None, "could not find output leaf switch for route %d -> %d" % (sourceLid, destLid)
 
         if inputLeafSwitch == outputLeafSwitch:
             # can be forwarded within the same leaf switch, does not
