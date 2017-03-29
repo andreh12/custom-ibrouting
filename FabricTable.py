@@ -405,17 +405,6 @@ class FabricTable:
         # each leaf switch has already a routing table
         # entry for each host
 
-        # make a local copy which we can index
-        leafSwitchLids  = list(self.leafSwitchLids)
-        spineSwitchLids = list(self.spineSwitchLids)
-
-        # when going from leaf switches to a given host,
-        # we round robin over the leaf switches
-        # 
-        # for spine switches, there is only one
-        # leaf switch we can use
-        nextSpineSwitch = 0
-
         # note that we do NOT have to add the reverse route
         # because makeInterSwitchRoutes(..) should be called before
         # so once we arrive from a server on a switch, it should
@@ -430,7 +419,7 @@ class FabricTable:
             #----------
             # assign missing routes from spine switches to hosts
             #----------        
-            for sourceLid in spineSwitchLids:
+            for sourceLid in self.spineSwitchLids:
                 if sourceLid == destSwitchLid:
                     # no need to add loopback route
                     continue
