@@ -61,7 +61,7 @@ class RoutingAlgo:
         # @param allPairs is a list of (sourceLid, destLid) pairs
 
         # make a copy which we can modify
-        allParis = allPairs[:]
+        allPairs = allPairs[:]
 
         while allPairs:
 
