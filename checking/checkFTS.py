@@ -71,7 +71,7 @@ class FTStable:
         # clear whether this is actually read by OpenSM ?
 
         print >> fout, "Unicast lids [0x%x-0x%x] of switch DR path slid 0; dlid 0; 0,1,19,32 guid %s (%s):" % (
-            min(self.destLidToPort.keys()),
+            0, # min(self.destLidToPort.keys()),
             max(self.destLidToPort.keys()),
             self.guid,
             self.description,
