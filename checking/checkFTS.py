@@ -457,6 +457,12 @@ def checkConnectivitySinglePair(srcLid, destLid, pcLids, showDeviceNames):
         # of the cable without iblinkinfo data
         outputPort = routingTable.getOutputPort(destLid)
 
+        if outputPort is None:
+            print "NOT OK from %d to %d" % (srcLid, destLid), ": no output port found for dest LID %d on switch LID %d" % (
+                destLid, currentSwitchLid)
+            return
+
+
         peerSwitchData = linkData.getSwitchPortData(currentSwitchLid, outputPort)
 
         peerLid = peerSwitchData['peerLid']
