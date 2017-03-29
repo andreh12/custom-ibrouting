@@ -60,6 +60,11 @@ class FTStable:
             del self.destLidToDescription[lid]
 
     #----------------------------------------
+            
+    def getOutputPort(self, lid):
+        return self.destLidToPort.get(lid, None)
+
+    #----------------------------------------
 
     def doPrint(self, fout = sys.stdout):
         # print the header
@@ -456,7 +461,7 @@ def checkConnectivity(ftsTable, linkData):
                 # 
                 # however we can't know what is at the other end
                 # of the cable without iblinkinfo data
-                outputPort = routingTable[destLid]
+                outputPort = routingTable.getOutputPort(destLid)
 
                 peerSwitchData = linkData.getSwitchPortData(currentSwitchLid, outputPort)
 
