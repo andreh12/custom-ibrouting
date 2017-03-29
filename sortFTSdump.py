@@ -19,6 +19,15 @@ currentSwitchLines = None
 
 currentSwitchName = None
 
+def addSwitch():
+    if currentSwitchLines != None and len(currentSwitchLines) > 0:
+        # flush the old switch
+        assert currentSwitchName != None
+
+        assert not switchToLines.has_key(currentSwitchName)
+
+        switchToLines[currentSwitchName] = currentSwitchLines
+
 for line in sys.stdin.read().splitlines():
 
     # example line:
@@ -27,13 +36,8 @@ for line in sys.stdin.read().splitlines():
     mo = re.match("Unicast lids \S+ of switch DR path slid \S+; dlid \S+; \S+ guid 0x\S+ \(\S+;(\S+):\S+\):", line)
 
     if mo:
-        if currentSwitchLines != None and len(currentSwitchLines) > 0:
-            # flush the old switch
-            assert currentSwitchName != None
-
-            assert not switchToLines.has_key(currentSwitchName)
-
-            switchToLines[currentSwitchName] = currentSwitchLines
+        # flush the old switch
+        addSwitch()
 
         # clear
         currentSwitchLines = [ line ]
