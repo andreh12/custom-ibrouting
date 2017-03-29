@@ -417,19 +417,24 @@ def checkConnectivity(ftsTable, linkData):
         #    continue
 
 
-        # if the source is a PC, we first go to the switch
-        if srcLid in pcLids:
-            switchPortData = ftsTable.getSwitchPortFromPClid(srcLid)
-
-            # go to the switch
-            currentSwitchLid = switchPortData['switchLid']
-
-        else:
-            # we start from a switch
-            currentSwitchLid = srcLid
-            
 
         for destLid in allLids:
+
+            # note that we need to rerun/reset this for every destination
+            # again
+
+            # if the source is a PC, we first go to the switch
+            if srcLid in pcLids:
+                switchPortData = ftsTable.getSwitchPortFromPClid(srcLid)
+
+                # go to the switch
+                currentSwitchLid = switchPortData['switchLid']
+
+            else:
+                # we start from a switch
+                currentSwitchLid = srcLid
+
+            #----------
             ## if destLid in ftsTable.switchLids:
             ##     # skip test for reaching switches
             ##     continue
