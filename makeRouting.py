@@ -16,6 +16,22 @@ def runCmd(cmdParts):
     assert res == 0, "failed to run command " + cmd
 
 #----------------------------------------------------------------------
+
+def makeHostListsFromRun():
+    # make the host lists from the RUs and BUs in the current run
+    # but only if the files do not exist yet
+
+    if not os.path.exists("rus.txt"):
+        runCmd([ "~aholz/oncall-stuff/printRUsInRun.py > rus.txt" ])
+
+    if not os.path.exists("bus.txt"):
+        runCmd([ "~aholz/oncall-stuff/printBUsInRun.py > bus.txt" ])
+
+
+
+
+
+#----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
 import getpass
@@ -53,11 +69,8 @@ if not os.path.exists(routingAlgoFile):
 #----------
 
 
-if not os.path.exists("rus.txt"):
-    runCmd([ "~aholz/oncall-stuff/printRUsInRun.py > rus.txt" ])
+# makeHostListsFromRun()
 
-if not os.path.exists("bus.txt"):
-    runCmd([ "~aholz/oncall-stuff/printBUsInRun.py > bus.txt" ])
 
 if not os.path.exists("iblinkinfo-output"):
     runCmd([ "sudo iblinkinfo > iblinkinfo-output" ])
