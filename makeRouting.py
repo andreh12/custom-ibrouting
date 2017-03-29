@@ -71,9 +71,13 @@ if not os.path.exists(routingAlgoFile):
 
 # makeHostListsFromRun()
 
+# filename of output of iblinkinfo
+iblinkinfoOutput = "iblinkinfo-output"
 
-if not os.path.exists("iblinkinfo-output"):
-    runCmd([ "sudo iblinkinfo > iblinkinfo-output" ])
+if not os.path.exists(iblinkinfoOutput):
+    runCmd([ "sudo iblinkinfo > " + iblinkinfoOutput ])
+    runCmd([ "iblinkInfoToCSV.py --lids " + iblinkinfoOutput + " > " + iblinkinfoOutput + ".csv" ])
+
 
 numRus = len(utils.readHostsFile("rus.txt"))
 numBus = len(utils.readHostsFile("bus.txt"))
