@@ -58,6 +58,8 @@ class FabricTable:
     #----------------------------------------
 
     def findLeafSwitchFromHostLid(self, hostLid):
+        # @return a RoutingTable object if found
+        # or None otherwise
 
         for leafSwitchLid in self.leafSwitchLids:
 
@@ -211,6 +213,7 @@ class FabricTable:
                 # on this spine switch
                 allowedSpineSwitchPorts = [ spineSwitchPort ]
             else:
+                # TODO: can we use spineSwitch.findLocalPorts(outputLeafSwitch.switchLid) here ?
                 allowedSpineSwitchPorts = spineSwitch.localLIDs.keys()
 
             # loop over all cables back to the spine switch

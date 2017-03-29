@@ -29,6 +29,10 @@ class RoutingTable:
         #----------
         # find the LIDs which are connected directly here
         # maps from port to peer LID
+        # 
+        # note that peer LID can also be a switch, i.e.
+        # there can be multiple ports having the same
+        # peer LID
         #----------
         self.localLIDs = {}
         for line in self.switchData['portData']:
