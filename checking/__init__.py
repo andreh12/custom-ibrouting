@@ -1,1 +1,4 @@
-__all__ = ['checkFTS']
+__all__ = ['checkFTS',
+           "FTStable",
+           "MultiFTStable",
+           ]
