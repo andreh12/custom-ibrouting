@@ -319,8 +319,9 @@ class FabricTable:
                     # just take the first port if not assigned yet
                     sourceSwitch.addLocalRoute(destLid, ports[0])
 
-                    
-
+                # end of loop over destLids
+            # end of loop over sourceLids
+        # end of loop over source/destination groups
 
         # now that we have the leaf to spine and spine to leaf routes
         # we can assign leaf to leaf and spine to spine routes
